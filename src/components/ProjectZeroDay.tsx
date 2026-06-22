@@ -34,7 +34,14 @@ const ProjectZeroDay = () => {
     }
   }, [showMatrixLoading]);
 
-  const handleLogin = (name: string, secret: string, remember: boolean) => {
+  const handleLogin = async (name: string, secret: string, remember: boolean) => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      console.warn("Fullscreen request failed", err);
+    }
     setTeam('team-' + Date.now(), name);
     setShowIntroVideo(true);
   };
