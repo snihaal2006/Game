@@ -205,6 +205,7 @@ const Chapter5: React.FC = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionText, setTransitionText] = useState('');
   const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [isBrailleOpen, setIsBrailleOpen] = useState(false);
   const [gatewayTimer, setGatewayTimer] = useState(10);
 
   // ── Effects ───────────────────────────────────────────────────────────────────
@@ -536,6 +537,49 @@ https://skcet-portal-login.xyz`}
         </div>
       )}
 
+      {/* ── BRAILLE CODE POPUP ─────────────────────────────────────────────────── */}
+      {isBrailleOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            maxWidth: 600, width: '100%',
+            background: 'rgba(20,0,20,0.95)', border: '1px solid #ff00cc',
+            padding: 32, position: 'relative'
+          }}>
+            <button 
+              onClick={() => setIsBrailleOpen(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#ff00cc', fontSize: 24, cursor: 'pointer' }}
+            >×</button>
+            <div style={{ ...orbitron, fontSize: 20, color: '#ff00cc', marginBottom: 24 }}>BRAILLE DIRECTORY (A - L)</div>
+            
+            <div style={{ ...mono, fontSize: 14, color: '#ff66cc', marginBottom: 16 }}>
+              Braille cells are numbered 1-3 on the left downwards, and 4-6 on the right downwards.
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, ...mono, fontSize: 16, color: '#ff00cc' }}>
+              <div>A: ⠁ (1)</div>
+              <div>B: ⠃ (1,2)</div>
+              <div>C: ⠉ (1,4)</div>
+              <div>D: ⠙ (1,4,5)</div>
+              <div>E: ⠑ (1,5)</div>
+              <div>F: ⠋ (1,2,4)</div>
+              <div>G: ⠛ (1,2,4,5)</div>
+              <div>H: ⠓ (1,2,5)</div>
+              <div>I: ⠊ (2,4)</div>
+              <div>J: ⠚ (2,4,5)</div>
+              <div>K: ⠅ (1,3)</div>
+              <div>L: ⠇ (1,2,3)</div>
+            </div>
+            <div style={{ ...mono, fontSize: 14, color: '#ffb3e6', marginTop: 24, borderTop: '1px solid #ff00cc', paddingTop: 16 }}>
+              [SYSTEM]: Braille pattern analysis complete for A through L.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── ALERT TICKER ───────────────────────────────────────────────────── */}
       <div style={{
         position: 'relative', zIndex: 10,
@@ -578,7 +622,36 @@ https://skcet-portal-login.xyz`}
                 }}>
                   [ CLUE: DECRYPT: 26-19-19-03-08 (A=1) ]
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0', marginTop: 12 }}>
+                  <div 
+                    onClick={() => setIsBrailleOpen(true)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      borderLeft: '2px solid #ff0000',
+                      padding: '7px 10px',
+                      marginBottom: 2,
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,0,0,0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <div style={{
+                      fontSize: 11, color: '#ff3333',
+                      maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      flex: 1,
+                    }}>braille_decode.exe</div>
+                    <div style={{
+                      width: 52, height: 5,
+                      background: '#001a00', marginLeft: 6, flexShrink: 0,
+                      position: 'relative', overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        position: 'absolute', left: 0, top: 0, bottom: 0,
+                        width: '100%',
+                        background: '#00ff41',
+                      }} />
+                    </div>
+                  </div>
             {FILES.map((f, i) => {
               const pct = bars[i];
               const done = pct >= 100;
@@ -947,7 +1020,6 @@ https://skcet-portal-login.xyz`}
                         {'● ●   ○ ○   ○ ○   ○ ○'}<br/>
                         {'○ ○   ○ ○   ○ ○   ● ○'}
                       </div>
-                      <div style={{ color: '#004444', fontSize: 11, marginTop: 16, letterSpacing: 2 }}>[ H ] [ A ] [ C ] [ K ]</div>
                     </div>
 
                     <form onSubmit={handleQ2} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

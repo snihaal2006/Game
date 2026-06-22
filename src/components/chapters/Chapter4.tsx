@@ -198,6 +198,13 @@ const Chapter4: React.FC = () => {
   const [extraLogs, setExtraLogs] = useState<{ tag: string; msg: string; color: string }[]>([]);
 
   // Post-unlock question state
+  const [q1Fragments, setQ1Fragments] = useState([
+    "delete(exam_database)",
+    "send_alert()",
+    "if time == 3:",
+    "backup_records()",
+    "activate(logic_bomb)",
+  ]);
   const [q2Answer, setQ2Answer] = useState('');
   const [q3Answer, setQ3Answer] = useState('');
   const [introRead, setIntroRead] = useState(false);
@@ -335,8 +342,23 @@ const Chapter4: React.FC = () => {
     setInputPlaceholder('WRONG WORD — TRY AGAIN...');
   };
 
-  const handleQ1 = (url: string) => {
-    if (url === 'if time == 3:\n    activate(logic_bomb)\n    delete(exam_database)') {
+  const moveFragment = (idx: number, dir: number) => {
+    const newFrags = [...q1Fragments];
+    const targetIdx = idx + dir;
+    if (targetIdx < 0 || targetIdx >= newFrags.length) return;
+    [newFrags[idx], newFrags[targetIdx]] = [newFrags[targetIdx], newFrags[idx]];
+    setQ1Fragments(newFrags);
+  };
+
+  const handleQ1Submit = () => {
+    const correct = [
+      "if time == 3:",
+      "activate(logic_bomb)",
+      "delete(exam_database)",
+      "backup_records()",
+      "send_alert()"
+    ];
+    if (q1Fragments.join('') === correct.join('')) {
       setTransitionText('SECURE CONNECTION ESTABLISHED. ACCESSING NEXT NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
@@ -345,7 +367,7 @@ const Chapter4: React.FC = () => {
       }, 3500);
     } else {
       setAttempts(a => a + 1);
-      const errLog = { tag: '[ERR]', msg: `CONNECTION REJECTED: INSECURE OR INVALID ORIGIN`, color: '#ff0000' };
+      const errLog = { tag: '[ERR]', msg: `SEQUENCE INCORRECT. ACCESS DENIED.`, color: '#ff0000' };
       setLogs(prev => [errLog, ...prev].slice(0, 5));
     }
   };
@@ -864,56 +886,59 @@ https://skcet-portal-login.xyz`}
                       Arrange the fragments in the correct order to reconstruct the attack sequence.
                     </div>
                     
-                    <div style={{ 
-                      background: 'rgba(20, 0, 0, 0.8)', 
-                      border: '1px solid #440000', 
-                      padding: 16, fontFamily: 'monospace', fontSize: 12, color: '#ff9999', marginBottom: 20 
-                    }}>
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{`if time == 3:
-activate(logic_bomb)
-delete(exam_database)
-send_alert()
-backup_records()`}</pre>
-                    </div>
-
-                    <div style={{ fontSize: 12, color: '#ff6666', marginBottom: 16 }}>Select the CORRECT first 3 lines of the attack:</div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {[
-                        `if time == 3:\n    activate(logic_bomb)\n    delete(exam_database)`,
-                        `backup_records()\nif time == 3:\n    activate(logic_bomb)`,
-                        `send_alert()\ndelete(exam_database)`
-                      ].map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => handleQ1(option)}
-                          style={{
-                            ...mono,
-                            padding: '12px 16px',
-                            background: '#1a0000',
-                            border: '1px solid #ff0000',
-                            color: '#ff6666',
-                            cursor: 'pointer',
-                            fontSize: 12,
-                            textAlign: 'left',
-                            transition: 'all 0.2s',
-                            letterSpacing: 1,
-                            whiteSpace: 'pre'
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = '#2a0000';
-                            e.currentTarget.style.boxShadow = '0 0 10px rgba(255,0,0,0.2)';
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = '#1a0000';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <span style={{ color: '#ff0000', marginRight: 12 }}>▶</span>
-                          {option}
-                        </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                      {q1Fragments.map((frag, idx) => (
+                        <div key={frag} style={{ 
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          background: 'rgba(20, 0, 0, 0.8)', 
+                          border: '1px solid #440000', 
+                          padding: '8px 16px', 
+                          fontFamily: 'monospace', fontSize: 14, color: '#ff9999' 
+                        }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <button 
+                              onClick={() => moveFragment(idx, -1)}
+                              disabled={idx === 0}
+                              style={{ 
+                                background: 'transparent', border: 'none', color: idx === 0 ? '#440000' : '#ff0000', cursor: idx === 0 ? 'default' : 'pointer', fontSize: 16, padding: 0, lineHeight: 1 
+                              }}
+                            >▲</button>
+                            <button 
+                              onClick={() => moveFragment(idx, 1)}
+                              disabled={idx === q1Fragments.length - 1}
+                              style={{ 
+                                background: 'transparent', border: 'none', color: idx === q1Fragments.length - 1 ? '#440000' : '#ff0000', cursor: idx === q1Fragments.length - 1 ? 'default' : 'pointer', fontSize: 16, padding: 0, lineHeight: 1 
+                              }}
+                            >▼</button>
+                          </div>
+                          <div>
+                            {frag === "activate(logic_bomb)" || frag === "delete(exam_database)" || frag === "backup_records()" ? (
+                              <><span style={{ opacity: 0 }}>....</span>{frag}</>
+                            ) : frag}
+                          </div>
+                        </div>
                       ))}
                     </div>
+
+                    <button
+                      onClick={handleQ1Submit}
+                      style={{
+                        ...mono,
+                        width: '100%',
+                        padding: '12px 16px',
+                        background: '#3a0000',
+                        border: '1px solid #ff0000',
+                        color: '#ff0000',
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        letterSpacing: 2,
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#550000')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '#3a0000')}
+                    >
+                      VERIFY SEQUENCE
+                    </button>
                   </div>
                 </>
               ) : !chapter4.solvedQuestions.includes('q2') ? (

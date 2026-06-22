@@ -200,11 +200,14 @@ const Chapter3: React.FC = () => {
   // Post-unlock question state
   const [q2Answer, setQ2Answer] = useState('');
   const [q3Answer, setQ3Answer] = useState('');
+  const [selectedQ1Flags, setSelectedQ1Flags] = useState<string[]>([]);
   const [introRead, setIntroRead] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionText, setTransitionText] = useState('');
   const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [isMorseOpen, setIsMorseOpen] = useState(false);
+  const [isBrailleOpen, setIsBrailleOpen] = useState(false);
   const [gatewayTimer, setGatewayTimer] = useState(10);
 
   // ── Effects ───────────────────────────────────────────────────────────────────
@@ -335,8 +338,19 @@ const Chapter3: React.FC = () => {
     setInputPlaceholder('WRONG WORD — TRY AGAIN...');
   };
 
-  const handleQ1 = (url: string) => {
-    if (url === 'Reply-To mismatch, DKIM FAIL, SPF FAIL') {
+  const handleQ1Toggle = (id: string) => {
+    setSelectedQ1Flags(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
+  };
+
+  const handleQ1Submit = () => {
+    if (selectedQ1Flags.length !== 3) {
+      const errLog = { tag: '[ERR]', msg: `SELECT EXACTLY 3 RED FLAGS`, color: '#ff0000' };
+      setLogs(prev => [errLog, ...prev].slice(0, 5));
+      return;
+    }
+    const correctIds = ["replyto", "dkim", "spf"];
+    const isCorrect = selectedQ1Flags.every(id => correctIds.includes(id));
+    if (isCorrect) {
       setTransitionText('SECURE CONNECTION ESTABLISHED. ACCESSING NEXT NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
@@ -347,6 +361,7 @@ const Chapter3: React.FC = () => {
       setAttempts(a => a + 1);
       const errLog = { tag: '[ERR]', msg: `CONNECTION REJECTED: INSECURE OR INVALID ORIGIN`, color: '#ff0000' };
       setLogs(prev => [errLog, ...prev].slice(0, 5));
+      setSelectedQ1Flags([]);
     }
   };
 
@@ -536,6 +551,82 @@ https://skcet-portal-login.xyz`}
         </div>
       )}
 
+      {/* ── MORSE CODE POPUP ─────────────────────────────────────────────────── */}
+      {isMorseOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            maxWidth: 600, width: '100%',
+            background: 'rgba(0,20,20,0.95)', border: '1px solid #00ffcc',
+            padding: 32, position: 'relative'
+          }}>
+            <button 
+              onClick={() => setIsMorseOpen(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#00ffcc', fontSize: 24, cursor: 'pointer' }}
+            >×</button>
+            <div style={{ ...orbitron, fontSize: 20, color: '#00ffcc', marginBottom: 24 }}>MORSE CODE DIRECTORY</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, ...mono, fontSize: 16, color: '#00ffcc' }}>
+              <div>A .-</div><div>B -...</div><div>C -.-.</div><div>D -..</div>
+              <div>E .</div><div>F ..-.</div><div>G --.</div><div>H ....</div>
+              <div>I ..</div><div>J .---</div><div>K -.-</div><div>L .-..</div>
+              <div>M --</div><div>N -.</div><div>O ---</div><div>P .--.</div>
+              <div>Q --.-</div><div>R .-.</div><div>S ...</div><div>T -</div>
+              <div>U ..-</div><div>V ...-</div><div>W .--</div><div>X -..-</div>
+              <div>Y -.--</div><div>Z --..</div>
+            </div>
+            <div style={{ ...mono, fontSize: 14, color: '#00e5ff', marginTop: 24, borderTop: '1px solid #00ffcc', paddingTop: 16 }}>
+              [SYSTEM]: Intercepted signal appears to use standard international morse code.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BRAILLE CODE POPUP ─────────────────────────────────────────────────── */}
+      {isBrailleOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            maxWidth: 600, width: '100%',
+            background: 'rgba(20,0,20,0.95)', border: '1px solid #ff00cc',
+            padding: 32, position: 'relative'
+          }}>
+            <button 
+              onClick={() => setIsBrailleOpen(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#ff00cc', fontSize: 24, cursor: 'pointer' }}
+            >×</button>
+            <div style={{ ...orbitron, fontSize: 20, color: '#ff00cc', marginBottom: 24 }}>BRAILLE DIRECTORY (A - L)</div>
+            
+            <div style={{ ...mono, fontSize: 14, color: '#ff66cc', marginBottom: 16 }}>
+              Braille cells are numbered 1-3 on the left downwards, and 4-6 on the right downwards.
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, ...mono, fontSize: 16, color: '#ff00cc' }}>
+              <div>A: ⠁ (1)</div>
+              <div>B: ⠃ (1,2)</div>
+              <div>C: ⠉ (1,4)</div>
+              <div>D: ⠙ (1,4,5)</div>
+              <div>E: ⠑ (1,5)</div>
+              <div>F: ⠋ (1,2,4)</div>
+              <div>G: ⠛ (1,2,4,5)</div>
+              <div>H: ⠓ (1,2,5)</div>
+              <div>I: ⠊ (2,4)</div>
+              <div>J: ⠚ (2,4,5)</div>
+              <div>K: ⠅ (1,3)</div>
+              <div>L: ⠇ (1,2,3)</div>
+            </div>
+            <div style={{ ...mono, fontSize: 14, color: '#ffb3e6', marginTop: 24, borderTop: '1px solid #ff00cc', paddingTop: 16 }}>
+              [SYSTEM]: Braille pattern analysis complete for A through L.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── ALERT TICKER ───────────────────────────────────────────────────── */}
       <div style={{
         position: 'relative', zIndex: 10,
@@ -578,7 +669,37 @@ https://skcet-portal-login.xyz`}
                 }}>
                   [ CLUE: DECRYPT: 26-19-19-03-08 (A=1) ]
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}>
+                
+                <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0', marginTop: 12 }}>
+                  <div 
+                    onClick={() => setIsBrailleOpen(true)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      borderLeft: '2px solid #ff0000',
+                      padding: '7px 10px',
+                      marginBottom: 2,
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,0,0,0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <div style={{
+                      fontSize: 11, color: '#ff3333',
+                      maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      flex: 1,
+                    }}>braille_decode.exe</div>
+                    <div style={{
+                      width: 52, height: 5,
+                      background: '#001a00', marginLeft: 6, flexShrink: 0,
+                      position: 'relative', overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        position: 'absolute', left: 0, top: 0, bottom: 0,
+                        width: '100%',
+                        background: '#00ff41',
+                      }} />
+                    </div>
+                  </div>
             {FILES.map((f, i) => {
               const pct = bars[i];
               const done = pct >= 100;
@@ -858,65 +979,58 @@ https://skcet-portal-login.xyz`}
                       [TECHNICAL ANALYSIS]: EMAIL FORENSICS
                     </div>
                     <div style={{ fontSize: 14, color: '#00cc33', marginBottom: 16, lineHeight: 1.5 }}>
-                      Analyze the email headers. Select the combination that contains THREE red flags indicating a phishing attack.
+                      Analyze the email headers. Select the THREE red flags indicating a phishing attack.
                     </div>
 
-                    <div style={{ 
-                      background: 'rgba(0, 10, 0, 0.8)', 
-                      border: '1px solid #00441a', 
-                      padding: 16, 
-                      fontFamily: 'monospace', 
-                      fontSize: 12, 
-                      color: '#00ff66', 
-                      marginBottom: 20 
-                    }}>
-                      <div style={{ borderBottom: '1px solid #00441a', paddingBottom: 8, marginBottom: 8 }}>
-                        <span style={{ color: '#00cc33' }}>From:</span> admin@skcet.ac.in<br/>
-                        <span style={{ color: '#00cc33' }}>Reply-To:</span> harvester99@protonmail.com<br/>
-                        <span style={{ color: '#00cc33' }}>Subject:</span> URGENT - Verify your credentials now
-                      </div>
-                      <div>
-                        <span style={{ color: '#00cc33' }}>X-Originating-IP:</span> 45.33.32.156<br/>
-                        <span style={{ color: '#00cc33' }}>Received:</span> from mail.totally-legit-uni.xyz<br/>
-                        <span style={{ color: '#00cc33' }}>DKIM-Signature:</span> FAIL<br/>
-                        <span style={{ color: '#00cc33' }}>SPF:</span> FAIL
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                       {[
-                        "Reply-To mismatch, DKIM FAIL, SPF FAIL",
-                        "From address, Subject URGENT, X-Originating-IP"
-                      ].map((url) => (
+                        { id: "from", label: "From: admin@skcet.ac.in" },
+                        { id: "replyto", label: "Reply-To: harvester99@protonmail.com" },
+                        { id: "subject", label: "Subject: URGENT - Verify your credentials now" },
+                        { id: "ip", label: "X-Originating-IP: 45.33.32.156" },
+                        { id: "received", label: "Received: from mail.totally-legit-uni.xyz" },
+                        { id: "dkim", label: "DKIM-Signature: FAIL" },
+                        { id: "spf", label: "SPF: FAIL" }
+                      ].map(flag => (
                         <button
-                          key={url}
-                          onClick={() => handleQ1(url)}
+                          key={flag.id}
+                          onClick={() => handleQ1Toggle(flag.id)}
                           style={{
                             ...mono,
-                            padding: '12px 16px',
-                            background: '#002a11',
-                            border: '1px solid #00ff66',
-                            color: '#00ff66',
+                            padding: '10px 16px',
+                            background: selectedQ1Flags.includes(flag.id) ? 'rgba(0, 255, 65, 0.2)' : 'rgba(0, 10, 0, 0.8)',
+                            border: `1px solid ${selectedQ1Flags.includes(flag.id) ? '#00ff41' : '#00441a'}`,
+                            color: selectedQ1Flags.includes(flag.id) ? '#00ff41' : '#00cc33',
                             cursor: 'pointer',
-                            fontSize: 14,
+                            fontSize: 13,
                             textAlign: 'left',
                             transition: 'all 0.2s',
-                            letterSpacing: 1
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = '#00441a';
-                            e.currentTarget.style.boxShadow = '0 0 10px rgba(0,255,102,0.2)';
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = '#002a11';
-                            e.currentTarget.style.boxShadow = 'none';
                           }}
                         >
-                          <span style={{ color: '#00ff66', marginRight: 12 }}>▶</span>
-                          {url}
+                          <span style={{ marginRight: 12 }}>{selectedQ1Flags.includes(flag.id) ? '[X]' : '[ ]'}</span>
+                          {flag.label}
                         </button>
                       ))}
                     </div>
+
+                    <button
+                      onClick={handleQ1Submit}
+                      style={{
+                        ...mono,
+                        width: '100%',
+                        padding: '12px 16px',
+                        background: selectedQ1Flags.length === 3 ? '#00441a' : '#002a11',
+                        border: '1px solid #00ff66',
+                        color: '#00ff66',
+                        cursor: selectedQ1Flags.length === 3 ? 'pointer' : 'not-allowed',
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        letterSpacing: 2,
+                        opacity: selectedQ1Flags.length === 3 ? 1 : 0.5
+                      }}
+                    >
+                      SUBMIT ANALYSIS
+                    </button>
                   </div>
                 </>
               ) : !chapter3.solvedQuestions.includes('q2') ? (
@@ -1059,18 +1173,24 @@ https://skcet-portal-login.xyz`}
           display: 'flex', flexDirection: 'column',
         }}>
           {[
-            { val: `${Math.floor(erasurePct)}%`, color: '#ff0000', flicker: true, label: 'ERASED' },
-            { val: '0', color: '#00ff41', flicker: false, label: 'BACKUPS LEFT' },
-            { val: `${rate}`, color: '#ff0000', flicker: true, label: 'FILES/SEC' },
-            { val: 'ROOT', color: '#00ff41', flicker: false, label: 'ACCESS LEVEL' },
-            { val: 'DEAD', color: '#ff0000', flicker: true, label: 'BACKUP STATUS' },
-            { val: 'CH.03', color: '#00ff66', flicker: false, label: 'ACTIVE CHAPTER' },
-            { val: `${attempts}/3`, color: '#ff0000', flicker: false, label: 'ATTEMPTS' },
+            { val: `${Math.floor(erasurePct)}%`, color: '#ff0000', flicker: true, label: 'ERASED', isClickable: false, onClick: undefined },
+            { val: '0', color: '#00ff41', flicker: false, label: 'BACKUPS LEFT', isClickable: false, onClick: undefined },
+            { val: `${rate}`, color: '#ff0000', flicker: true, label: 'FILES/SEC', isClickable: false, onClick: undefined },
+            { val: 'ROOT', color: '#00ff41', flicker: false, label: 'ACCESS LEVEL', isClickable: false, onClick: undefined },
+            { val: 'DEAD', color: '#ff0000', flicker: true, label: 'BACKUP STATUS', isClickable: false, onClick: undefined },
+            { val: 'CH.03', color: '#00ff66', flicker: false, label: 'ACTIVE CHAPTER', isClickable: false, onClick: undefined },
+            { val: `${attempts}/3`, color: '#ff0000', flicker: false, label: 'ATTEMPTS', isClickable: false, onClick: undefined },
+            { val: 'VIEW', color: '#00ffcc', flicker: false, label: 'MORSE CODE', isClickable: true, onClick: () => setIsMorseOpen(true) },
           ].map((s, i) => (
-            <div key={i} style={{
+            <div key={i} onClick={s.onClick} style={{
               borderBottom: '1px solid #010901',
               padding: '9px 12px',
-            }}>
+              cursor: s.isClickable ? 'pointer' : 'default',
+              transition: s.isClickable ? 'background 0.2s' : 'none',
+            }}
+            onMouseEnter={s.isClickable ? e => (e.currentTarget.style.background = 'rgba(0,255,204,0.1)') : undefined}
+            onMouseLeave={s.isClickable ? e => (e.currentTarget.style.background = 'transparent') : undefined}
+            >
               <div style={{
                 ...orbitron,
                 fontSize: 16, fontWeight: 700,
