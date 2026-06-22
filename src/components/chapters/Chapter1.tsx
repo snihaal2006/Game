@@ -835,7 +835,7 @@ print(scan_network("192.168.1."))`}
 
               {showCompletion && !isProceedingToCh2 && (
                 <div style={{ textAlign: 'center', border: '1px solid #00ff41', padding: 24, background: 'rgba(0,20,0,0.95)' }}>
-                  <div style={{ ...orbitron, color: '#00ff41', fontSize: 20, letterSpacing: 4, marginBottom: 16 }}>CASE CLOSED — [V] RECOVERED</div>
+                  <div style={{ ...orbitron, color: '#00ff41', fontSize: 20, letterSpacing: 4, marginBottom: 16 }}>CASE CLOSED — [D] RECOVERED</div>
                   <button onClick={handleProceed}
                     style={{ ...orbitron, background: '#00ff41', color: '#000', border: 'none', padding: '12px 32px', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 3 }}>
                     PROCEED TO CH.02
@@ -852,8 +852,9 @@ print(scan_network("192.168.1."))`}
                     EVIDENCE FRAGMENT RECOVERED
                   </div>
                   <div style={{ ...orbitron, color: '#00ff41', fontSize: 48, fontWeight: 'bold', textShadow: '0 0 20px #00ff41', margin: '20px 0' }}>
-                    [V]
+                    [D]
                   </div>
+                  <div style={{ color: '#00cc33', fontSize: 12, marginTop: 8, fontStyle: 'italic', letterSpacing: 1 }}>Note: Collect this for future use.</div>
                   
                   <div style={{ ...mono, color: '#00cc33', fontSize: 14, minHeight: 80, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {proceedStep >= 1 && <div>&gt; Analyzing recovered data...</div>}

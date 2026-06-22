@@ -1144,7 +1144,11 @@ https://skcet-portal-login.xyz`}
                   <div style={{ ...mono, color: '#00ffcc', fontSize: 14, marginBottom: 8 }}>&gt; PHISHING ATTACK TRACED</div>
                   <div style={{ ...mono, color: '#00ffcc', fontSize: 14, marginBottom: 8 }}>&gt; SIGNAL DECODED: SHADOW</div>
                   <div style={{ ...mono, color: '#00ffcc', fontSize: 14, marginBottom: 16 }}>&gt; DEBUG SUCCESSFUL: 012</div>
-                  <div style={{ ...orbitron, color: '#00ffcc', fontSize: 18, letterSpacing: 2, marginBottom: 24, animation: 'pulseOp 1s infinite' }}>Encrypted Fragment Recovered – Fragment-3 Recovered</div>
+                  <div style={{ ...orbitron, color: '#00ffcc', fontSize: 18, letterSpacing: 2, marginBottom: 8, animation: 'pulseOp 1s infinite' }}>EVIDENCE FRAGMENT RECOVERED</div>
+                  <div style={{ ...orbitron, color: '#00ffcc', fontSize: 48, fontWeight: 'bold', textShadow: '0 0 20px #00ffcc', margin: '16px 0' }}>
+                    [I]
+                  </div>
+                  <div style={{ color: '#00ffcc', fontSize: 12, marginBottom: 24, fontStyle: 'italic', letterSpacing: 1 }}>Note: Collect this for future use.</div>
                   <button onClick={() => { setShowCompletion(false); completeChapter3(); setActiveChapter(4); }}
                     style={{ ...orbitron, background: '#00ff66', color: '#000', border: 'none', padding: '12px 32px', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 3 }}>
                     UNLOCK CH.04

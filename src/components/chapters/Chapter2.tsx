@@ -986,7 +986,11 @@ System.out.println(count);`}
                   <div style={{ ...mono, color: '#00e5ff', fontSize: 14, marginBottom: 8 }}>&gt; GATEWAY SECURED</div>
                   <div style={{ ...mono, color: '#00e5ff', fontSize: 14, marginBottom: 8 }}>&gt; HIDDEN TRANSMISSION DECODED</div>
                   <div style={{ ...mono, color: '#00e5ff', fontSize: 14, marginBottom: 16 }}>&gt; DEBUG SUCCESSFUL</div>
-                  <div style={{ ...orbitron, color: '#00e5ff', fontSize: 18, letterSpacing: 2, marginBottom: 24, animation: 'pulseOp 1s infinite' }}>Encrypted Fragment Recovered – Fragment-2 Recovered</div>
+                  <div style={{ ...orbitron, color: '#00e5ff', fontSize: 18, letterSpacing: 2, marginBottom: 8, animation: 'pulseOp 1s infinite' }}>EVIDENCE FRAGMENT RECOVERED</div>
+                  <div style={{ ...orbitron, color: '#00e5ff', fontSize: 48, fontWeight: 'bold', textShadow: '0 0 20px #00e5ff', margin: '16px 0' }}>
+                    [O]
+                  </div>
+                  <div style={{ color: '#00e5ff', fontSize: 12, marginBottom: 24, fontStyle: 'italic', letterSpacing: 1 }}>Note: Collect this for future use.</div>
                   <button onClick={() => { setShowCompletion(false); completeChapter2(); setActiveChapter(3); }}
                     style={{ ...orbitron, background: '#bd00ff', color: '#000', border: 'none', padding: '12px 32px', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 3 }}>
                     UNLOCK CH.03

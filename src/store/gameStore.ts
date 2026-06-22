@@ -169,7 +169,7 @@ export const useGameStore = create<GameState>((set) => ({
   completeChapter2: () => set((state) => ({
     chapter2: {
       ...state.chapter2,
-      evidenceCollected: [...state.chapter2.evidenceCollected, 'I']
+      evidenceCollected: [...state.chapter2.evidenceCollected, 'O']
     },
     unlockedChapters: state.unlockedChapters.includes(3) ? state.unlockedChapters : [...state.unlockedChapters, 3]
   })),
@@ -192,7 +192,7 @@ export const useGameStore = create<GameState>((set) => ({
   completeChapter3: () => set((state) => ({
     chapter3: {
       ...state.chapter3,
-      evidenceCollected: [...state.chapter3.evidenceCollected, 'O']
+      evidenceCollected: [...state.chapter3.evidenceCollected, 'I']
     },
     unlockedChapters: state.unlockedChapters.includes(4) ? state.unlockedChapters : [...state.unlockedChapters, 4]
   })),

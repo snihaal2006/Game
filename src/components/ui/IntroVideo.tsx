@@ -27,7 +27,7 @@ const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
     // Initialize player when API is ready
     const initPlayer = () => {
       playerRef.current = new window.YT.Player('yt-player-container', {
-        videoId: 'knBVlkJhwc4',
+        videoId: 'aX1P1BSpbN4',
         playerVars: {
           autoplay: 1,
           controls: 0,
