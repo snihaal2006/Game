@@ -355,8 +355,8 @@ const Chapter4: React.FC = () => {
       "if time == 3:",
       "activate(logic_bomb)",
       "delete(exam_database)",
-      "backup_records()",
-      "send_alert()"
+      "send_alert()",
+      "backup_records()"
     ];
     if (q1Fragments.join('') === correct.join('')) {
       setTransitionText('SECURE CONNECTION ESTABLISHED. ACCESSING NEXT NODE...');
