@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { ChapterCompletedOverlay } from '../ui/ChapterCompletedOverlay';
 
 // ─── MATRIX RAIN CANVAS ────────────────────────────────────────────────────────
 const MatrixCanvas: React.FC = () => {
@@ -168,10 +169,10 @@ const FloatingEmails: React.FC = () => {
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const Chapter2: React.FC = () => {
-  const { chapter2, decryptChapter2, solveChapter2Question, completeChapter2, setActiveChapter } = useGameStore();
+  const { chapter2, decryptChapter2, solveChapter2Question, completeChapter2, globalState } = useGameStore();
 
-  // Timer state: 03:47 = 227 seconds
-  const [timerSecs, setTimerSecs] = useState(227);
+  // Timer state
+  const [timerSecs, setTimerSecs] = useState(0);
 
   // Skull text (generated from SKULL_SHAPE template)
   const [skullText, setSkullText] = useState(() => generateSkullFrame());
@@ -195,7 +196,6 @@ const Chapter2: React.FC = () => {
   const [attempts, setAttempts] = useState(0);
   const [inputBorderRed, setInputBorderRed] = useState(false);
   const [inputPlaceholder, setInputPlaceholder] = useState('ENTER DECODED WORD...');
-  const [extraLogs, setExtraLogs] = useState<{ tag: string; msg: string; color: string }[]>([]);
 
   // Post-unlock question state
   const [q2Answer, setQ2Answer] = useState('');
@@ -216,13 +216,11 @@ const Chapter2: React.FC = () => {
     const t = setInterval(() => {
       setGatewayTimer(prev => {
         if (prev <= 1) {
-          // Time out!
           setAttempts(a => a + 1);
           setLogs(l => [{ tag: '[SYS]', msg: 'GATEWAY TIMEOUT. CONNECTION FAILED.', color: '#ff0000' }, ...l].slice(0, 5));
-          return 10; // reset to 10
+          return 10;
         }
         
-        // Play beep
         try {
           const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
           if (AudioContext) {
@@ -238,9 +236,7 @@ const Chapter2: React.FC = () => {
             osc.start();
             osc.stop(ctx.currentTime + 0.1);
           }
-        } catch (e) {
-          // Ignore audio errors
-        }
+        } catch (e) {}
         
         return prev - 1;
       });
@@ -251,9 +247,22 @@ const Chapter2: React.FC = () => {
 
   // Countdown timer
   useEffect(() => {
-    const t = setInterval(() => setTimerSecs(s => Math.max(0, s - 1)), 1000);
+    const updateTimer = () => {
+      if (globalState.round_status === 'paused') return;
+      if (!globalState.round_end_time) {
+        setTimerSecs(0);
+        return;
+      }
+      const end = new Date(globalState.round_end_time).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+      setTimerSecs(diff);
+    };
+
+    updateTimer();
+    const t = setInterval(updateTimer, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [globalState.round_end_time, globalState.round_status]);
 
   // Skull binary flicker
   useEffect(() => {
@@ -398,6 +407,9 @@ const Chapter2: React.FC = () => {
 
       {/* ── MATRIX CANVAS ──────────────────────────────────────────────────── */}
       <MatrixCanvas />
+
+      {/* ── CHAPTER COMPLETED OVERLAY ──────────────────────────────────────── */}
+      {chapter2.evidenceCollected.includes('O') && <ChapterCompletedOverlay />}
 
       {/* ── FLOATING EMAILS ────────────────────────────────────────────────── */}
       <FloatingEmails />
@@ -991,7 +1003,7 @@ System.out.println(count);`}
                     [O]
                   </div>
                   <div style={{ color: '#00e5ff', fontSize: 12, marginBottom: 24, fontStyle: 'italic', letterSpacing: 1 }}>Note: Collect this for future use.</div>
-                  <button onClick={() => { setShowCompletion(false); completeChapter2(); setActiveChapter(3); }}
+                  <button onClick={() => { setShowCompletion(false); completeChapter2(); }} 
                     style={{ ...orbitron, background: '#bd00ff', color: '#000', border: 'none', padding: '12px 32px', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 3 }}>
                     UNLOCK CH.03
                   </button>

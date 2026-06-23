@@ -1,6 +1,16 @@
 import { create } from 'zustand';
 
 interface GameState {
+  // Global Admin State
+  globalState: {
+    current_chapter: number;
+    round_status: 'waiting' | 'active' | 'paused';
+    round_end_time: string | null;
+    paused_time_remaining: number;
+  };
+  setGlobalState: (state: Partial<GameState['globalState']>) => void;
+  syncGlobalState: () => void;
+
   unlockedChapters: number[];
   activeChapter: number;
   score: number;
@@ -83,7 +93,14 @@ interface GameState {
   setTeam: (id: string, name: string) => void;
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useGameStore = create<GameState>((set, get) => ({
+  globalState: {
+    current_chapter: 0,
+    round_status: 'waiting',
+    round_end_time: null,
+    paused_time_remaining: 0,
+  },
+  
   unlockedChapters: [1],
   activeChapter: 1,
   score: 0,
@@ -121,6 +138,44 @@ export const useGameStore = create<GameState>((set) => ({
     isDecrypted: false,
     solvedQuestions: [],
     evidenceCollected: []
+  },
+
+  setGlobalState: (newState) => set((state) => ({ 
+    globalState: { ...state.globalState, ...newState } 
+  })),
+
+  syncGlobalState: async () => {
+    const { supabase } = await import('../lib/supabase');
+    
+    // Fetch initial
+    const { data } = await supabase.from('global_settings').select('*').eq('id', 1).single();
+    if (data) {
+      set((state) => ({
+        globalState: {
+          ...state.globalState,
+          current_chapter: data.current_chapter,
+          round_status: data.round_status,
+          round_end_time: data.round_end_time,
+          paused_time_remaining: data.paused_time_remaining,
+        }
+      }));
+    }
+
+    // Subscribe to changes
+    supabase.channel('global_settings_changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'global_settings', filter: 'id=eq.1' }, (payload) => {
+        const newData = payload.new;
+        set((state) => ({
+          globalState: {
+            ...state.globalState,
+            current_chapter: newData.current_chapter,
+            round_status: newData.round_status,
+            round_end_time: newData.round_end_time,
+            paused_time_remaining: newData.paused_time_remaining,
+          }
+        }));
+      })
+      .subscribe();
   },
 
   setTeam: (id, name) => set({ teamId: id, teamName: name }),

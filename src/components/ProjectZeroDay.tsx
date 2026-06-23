@@ -15,33 +15,30 @@ import { AntiCheatOverlay } from './ui/AntiCheatOverlay';
 import { TransmissionPopup } from './ui/TransmissionPopup';
 
 const ProjectZeroDay = () => {
-  const { activeChapter, unlockedChapters, timeRemaining, decrementTime, score, setActiveChapter, teamName, setTeam } = useGameStore();
+  const { activeChapter, unlockedChapters, score, setActiveChapter, teamName, setTeam, globalState, syncGlobalState } = useGameStore();
 
   const [showIntroVideo, setShowIntroVideo] = useState(false);
   const [showMatrixLoading, setShowMatrixLoading] = useState(false);
   const [introVideoFinished, setIntroVideoFinished] = useState(false);
-  const [gamePaused, setGamePaused] = useState(false);
   const introVideoRef = useRef<IntroVideoRef>(null);
 
   useEffect(() => {
-    if (!teamName || gamePaused) return;
-    const timer = setInterval(() => {
-      decrementTime();
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [decrementTime, teamName, gamePaused]);
+    syncGlobalState();
+  }, [syncGlobalState]);
 
+  // Intro Video Sync Logic
   useEffect(() => {
     if (!teamName) return;
-    const fetchGlobalSettings = async () => {
-      const { supabase } = await import('../lib/supabase');
-      const { data } = await supabase.from('global_settings').select('game_paused').eq('id', 1).single();
-      if (data) setGamePaused(data.game_paused);
-    };
-    fetchGlobalSettings();
-    const interval = setInterval(fetchGlobalSettings, 5000);
-    return () => clearInterval(interval);
-  }, [teamName]);
+    if (globalState.current_chapter === 0 && globalState.round_status === 'active' && !introVideoFinished) {
+      setShowIntroVideo(true);
+      setShowMatrixLoading(false);
+    } else if (globalState.current_chapter > 0 && showIntroVideo) {
+      // Force skip if round advanced
+      setShowIntroVideo(false);
+      setIntroVideoFinished(true);
+      setShowMatrixLoading(true);
+    }
+  }, [globalState.current_chapter, globalState.round_status, teamName, introVideoFinished, showIntroVideo]);
 
   useEffect(() => {
     if (showMatrixLoading) {
@@ -106,11 +103,17 @@ const ProjectZeroDay = () => {
       }
       
       setTeam(teamId, name);
-      // If time hasn't been touched, it's their first time playing
-      if (existingTeam.time_remaining === 10800 && existingTeam.score === 0 && existingTeam.active_chapter === 1) {
-        setShowIntroVideo(true);
+      // Wait logic
+      if (globalState.current_chapter === 0) {
+        if (globalState.round_status === 'active') {
+          setShowIntroVideo(true);
+        } else {
+          // Waiting for round 0 to start
+          setIntroVideoFinished(false);
+        }
       } else {
         setIntroVideoFinished(true);
+        // Only show matrix loading if it's the start of a round
         setShowMatrixLoading(true);
       }
     } catch (err: any) {
@@ -188,20 +191,32 @@ const ProjectZeroDay = () => {
       {teamName && introVideoFinished && !showMatrixLoading && (
         <>
           <DataWipeBackground />
-          {activeChapter === 1 && <TransmissionPopup />}
-          {activeChapter === 1 && <Chapter1 />}
-          {activeChapter === 2 && <Chapter2 />}
-          {activeChapter === 3 && <Chapter3 />}
-          {activeChapter === 4 && <Chapter4 />}
-          {activeChapter === 5 && <Chapter5 />}
+          {globalState.current_chapter === 1 && <TransmissionPopup />}
+          {globalState.current_chapter === 1 && <Chapter1 />}
+          {globalState.current_chapter === 2 && <Chapter2 />}
+          {globalState.current_chapter === 3 && <Chapter3 />}
+          {globalState.current_chapter === 4 && <Chapter4 />}
+          {globalState.current_chapter === 5 && <Chapter5 />}
           
-          {gamePaused && (
+          {globalState.round_status === 'paused' && (
             <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md pointer-events-auto">
               <h1 className="text-5xl md:text-7xl font-bold text-red-500 tracking-widest uppercase mb-4 animate-pulse">
                 System Halted
               </h1>
               <p className="text-red-400/80 font-mono tracking-widest text-lg bg-black/50 border border-red-500/30 px-6 py-2 mt-4">
                 THE OVERSEER HAS PAUSED THE GAME.
+              </p>
+            </div>
+          )}
+
+          {globalState.round_status === 'waiting' && globalState.current_chapter === 0 && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md pointer-events-auto">
+              <div className="text-[#00ff41] text-sm tracking-[0.3em] mb-4 animate-pulse">CONNECTION ESTABLISHED</div>
+              <h1 className="text-4xl md:text-5xl font-bold text-[#00ff41] animate-pulse text-center">
+                Waiting for Overseer...
+              </h1>
+              <p className="text-[#00ff41]/80 mt-6 text-center tracking-widest font-mono text-sm border border-[#00ff41]/30 bg-black/50 px-6 py-2">
+                THE EVENT WILL BEGIN SHORTLY
               </p>
             </div>
           )}

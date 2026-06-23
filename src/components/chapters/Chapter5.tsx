@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { ChapterCompletedOverlay } from '../ui/ChapterCompletedOverlay';
 
 // ─── MATRIX RAIN CANVAS ────────────────────────────────────────────────────────
 const MatrixCanvas: React.FC = () => {
@@ -168,7 +169,7 @@ const FloatingEmails: React.FC = () => {
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const Chapter5: React.FC = () => {
-  const { chapter5, decryptChapter5, solveChapter5Question, completeChapter5 } = useGameStore();
+  const { chapter5, decryptChapter5, solveChapter5Question, completeChapter5, globalState } = useGameStore();
 
   // Timer state: 03:47 = 227 seconds
   const [timerSecs, setTimerSecs] = useState(227);
@@ -252,9 +253,22 @@ const Chapter5: React.FC = () => {
 
   // Countdown timer
   useEffect(() => {
-    const t = setInterval(() => setTimerSecs(s => Math.max(0, s - 1)), 1000);
+    const updateTimer = () => {
+      if (globalState.round_status === 'paused') return;
+      if (!globalState.round_end_time) {
+        setTimerSecs(0);
+        return;
+      }
+      const end = new Date(globalState.round_end_time).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+      setTimerSecs(diff);
+    };
+
+    updateTimer();
+    const t = setInterval(updateTimer, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [globalState.round_end_time, globalState.round_status]);
 
   // Skull binary flicker
   useEffect(() => {
@@ -399,6 +413,9 @@ const Chapter5: React.FC = () => {
 
       {/* ── MATRIX CANVAS ──────────────────────────────────────────────────── */}
       <MatrixCanvas />
+
+      {/* ── CHAPTER COMPLETED OVERLAY ──────────────────────────────────────── */}
+      {chapter5.evidenceCollected.includes('MISSION COMPLETE') && <ChapterCompletedOverlay />}
 
       {/* ── FLOATING EMAILS ────────────────────────────────────────────────── */}
       <FloatingEmails />

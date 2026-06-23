@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { ChapterCompletedOverlay } from '../ui/ChapterCompletedOverlay';
 
 // ─── MATRIX RAIN CANVAS ────────────────────────────────────────────────────────
 const MatrixCanvas: React.FC = () => {
@@ -127,10 +128,10 @@ const LOG_MSGS = [
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const Chapter1: React.FC = () => {
-  const { chapter1, decryptChapter1, solveChapter1Question, completeChapter1 } = useGameStore();
+  const { chapter1, decryptChapter1, solveChapter1Question, completeChapter1, globalState } = useGameStore();
 
-  // Timer state: 03:47 = 227 seconds
-  const [timerSecs, setTimerSecs] = useState(227);
+  // Timer state based on global round
+  const [timerSecs, setTimerSecs] = useState(0);
 
   // Skull text (generated from SKULL_SHAPE template)
   const [skullText, setSkullText] = useState(() => generateSkullFrame());
@@ -167,11 +168,24 @@ const Chapter1: React.FC = () => {
 
   // ── Effects ───────────────────────────────────────────────────────────────────
 
-  // Countdown timer
+  // Global Countdown timer
   useEffect(() => {
-    const t = setInterval(() => setTimerSecs(s => Math.max(0, s - 1)), 1000);
+    const updateTimer = () => {
+      if (globalState.round_status === 'paused') return;
+      if (!globalState.round_end_time) {
+        setTimerSecs(0);
+        return;
+      }
+      const end = new Date(globalState.round_end_time).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+      setTimerSecs(diff);
+    };
+
+    updateTimer();
+    const t = setInterval(updateTimer, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [globalState.round_end_time, globalState.round_status]);
 
   // Skull binary flicker
   useEffect(() => {
@@ -217,7 +231,7 @@ const Chapter1: React.FC = () => {
 
   // Chapter completion
   useEffect(() => {
-    if (chapter1.solvedQuestions.length === 3 && !chapter1.evidenceCollected.includes('V')) {
+    if (chapter1.solvedQuestions.length === 3 && !chapter1.evidenceCollected.includes('D')) {
       setTimeout(() => setShowCompletion(true), 1000);
     }
   }, [chapter1.solvedQuestions, chapter1.evidenceCollected]);
@@ -297,16 +311,7 @@ const Chapter1: React.FC = () => {
 
 
   const handleProceed = () => {
-    setIsProceedingToCh2(true);
     completeChapter1();
-    
-    // Step sequence
-    setTimeout(() => setProceedStep(1), 1500); // Analyzing recovered data...
-    setTimeout(() => setProceedStep(2), 3000); // Decrypting next incident...
-    setTimeout(() => setProceedStep(3), 4500); // Loading Case File 02...
-    setTimeout(() => {
-      useGameStore.getState().setActiveChapter(2);
-    }, 6000);
   };
 
   const allLogs = [...logs];
@@ -329,6 +334,9 @@ const Chapter1: React.FC = () => {
 
       {/* ── MATRIX CANVAS ──────────────────────────────────────────────────── */}
       <MatrixCanvas />
+
+      {/* ── CHAPTER COMPLETED OVERLAY ──────────────────────────────────────── */}
+      {chapter1.evidenceCollected.includes('D') && <ChapterCompletedOverlay />}
 
       {/* ── CANVAS OVERLAYS ────────────────────────────────────────────────── */}
       <div style={{

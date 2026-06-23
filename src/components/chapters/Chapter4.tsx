@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { ChapterCompletedOverlay } from '../ui/ChapterCompletedOverlay';
 
 // ─── MATRIX RAIN CANVAS ────────────────────────────────────────────────────────
 const MatrixCanvas: React.FC = () => {
@@ -168,10 +169,10 @@ const FloatingEmails: React.FC = () => {
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const Chapter4: React.FC = () => {
-  const { chapter4, decryptChapter4, solveChapter4Question, completeChapter4, setActiveChapter } = useGameStore();
+  const { chapter4, decryptChapter4, solveChapter4Question, completeChapter4, globalState } = useGameStore();
 
-  // Timer state: 03:47 = 227 seconds
-  const [timerSecs, setTimerSecs] = useState(227);
+  // Global Timer state
+  const [timerSecs, setTimerSecs] = useState(0);
 
   // Skull text (generated from SKULL_SHAPE template)
   const [skullText, setSkullText] = useState(() => generateSkullFrame());
@@ -195,7 +196,6 @@ const Chapter4: React.FC = () => {
   const [attempts, setAttempts] = useState(0);
   const [inputBorderRed, setInputBorderRed] = useState(false);
   const [inputPlaceholder, setInputPlaceholder] = useState('ENTER DECODED WORD...');
-  const [extraLogs, setExtraLogs] = useState<{ tag: string; msg: string; color: string }[]>([]);
 
   // Post-unlock question state
   const [q1Fragments, setQ1Fragments] = useState([
@@ -258,9 +258,22 @@ const Chapter4: React.FC = () => {
 
   // Countdown timer
   useEffect(() => {
-    const t = setInterval(() => setTimerSecs(s => Math.max(0, s - 1)), 1000);
+    const updateTimer = () => {
+      if (globalState.round_status === 'paused') return;
+      if (!globalState.round_end_time) {
+        setTimerSecs(0);
+        return;
+      }
+      const end = new Date(globalState.round_end_time).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+      setTimerSecs(diff);
+    };
+
+    updateTimer();
+    const t = setInterval(updateTimer, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [globalState.round_end_time, globalState.round_status]);
 
   // Skull binary flicker
   useEffect(() => {
@@ -420,6 +433,9 @@ const Chapter4: React.FC = () => {
 
       {/* ── MATRIX CANVAS ──────────────────────────────────────────────────── */}
       <MatrixCanvas />
+
+      {/* ── CHAPTER COMPLETED OVERLAY ──────────────────────────────────────── */}
+      {chapter4.evidenceCollected.includes('V') && <ChapterCompletedOverlay />}
 
       {/* ── FLOATING EMAILS ────────────────────────────────────────────────── */}
       <FloatingEmails />
@@ -1064,7 +1080,7 @@ System.out.println(sum);`}
                     [V]
                   </div>
                   <div style={{ color: '#ff6666', fontSize: 12, marginBottom: 24, fontStyle: 'italic', letterSpacing: 1 }}>Note: Collect this for future use.</div>
-                  <button onClick={() => { setShowCompletion(false); completeChapter4(); setActiveChapter(5); }}
+                  <button onClick={() => { setShowCompletion(false); completeChapter4(); }}
                     style={{ ...orbitron, background: '#ff0000', color: '#000', border: 'none', padding: '12px 32px', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 3 }}>
                     UNLOCK CH.05
                   </button>

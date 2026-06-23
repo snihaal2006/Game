@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { ChapterCompletedOverlay } from '../ui/ChapterCompletedOverlay';
 
 // ─── MATRIX RAIN CANVAS ────────────────────────────────────────────────────────
 const MatrixCanvas: React.FC = () => {
@@ -168,10 +169,10 @@ const FloatingEmails: React.FC = () => {
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const Chapter3: React.FC = () => {
-  const { chapter3, decryptChapter3, solveChapter3Question, completeChapter3, setActiveChapter } = useGameStore();
+  const { chapter3, decryptChapter3, solveChapter3Question, completeChapter3, globalState } = useGameStore();
 
-  // Timer state: 03:47 = 227 seconds
-  const [timerSecs, setTimerSecs] = useState(227);
+  // Global Timer state
+  const [timerSecs, setTimerSecs] = useState(0);
 
   // Skull text (generated from SKULL_SHAPE template)
   const [skullText, setSkullText] = useState(() => generateSkullFrame());
@@ -195,7 +196,6 @@ const Chapter3: React.FC = () => {
   const [attempts, setAttempts] = useState(0);
   const [inputBorderRed, setInputBorderRed] = useState(false);
   const [inputPlaceholder, setInputPlaceholder] = useState('ENTER DECODED WORD...');
-  const [extraLogs, setExtraLogs] = useState<{ tag: string; msg: string; color: string }[]>([]);
 
   // Post-unlock question state
   const [q2Answer, setQ2Answer] = useState('');
@@ -413,6 +413,9 @@ const Chapter3: React.FC = () => {
 
       {/* ── MATRIX CANVAS ──────────────────────────────────────────────────── */}
       <MatrixCanvas />
+
+      {/* ── CHAPTER COMPLETED OVERLAY ──────────────────────────────────────── */}
+      {chapter3.evidenceCollected.includes('I') && <ChapterCompletedOverlay />}
 
       {/* ── FLOATING EMAILS ────────────────────────────────────────────────── */}
       <FloatingEmails />
@@ -1149,7 +1152,7 @@ https://skcet-portal-login.xyz`}
                     [I]
                   </div>
                   <div style={{ color: '#00ffcc', fontSize: 12, marginBottom: 24, fontStyle: 'italic', letterSpacing: 1 }}>Note: Collect this for future use.</div>
-                  <button onClick={() => { setShowCompletion(false); completeChapter3(); setActiveChapter(4); }}
+                  <button onClick={() => { setShowCompletion(false); completeChapter3(); }}
                     style={{ ...orbitron, background: '#00ff66', color: '#000', border: 'none', padding: '12px 32px', cursor: 'pointer', fontSize: 14, fontWeight: 'bold', letterSpacing: 3 }}>
                     UNLOCK CH.04
                   </button>

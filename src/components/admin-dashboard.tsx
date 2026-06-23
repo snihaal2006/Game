@@ -15,7 +15,14 @@ interface Team {
 const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [teams, setTeams] = useState<Team[]>([]);
-  const [isPaused, setIsPaused] = useState(false);
+  
+  // Global Settings state
+  const [globalSettings, setGlobalSettings] = useState({
+    current_chapter: 0,
+    round_status: 'waiting',
+    round_end_time: null as string | null,
+    paused_time_remaining: 0
+  });
   
   // Modal state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -37,11 +44,18 @@ const AdminDashboard = () => {
 
       const { data: settingsData, error: settingsError } = await supabase
         .from('global_settings')
-        .select('game_paused')
+        .select('current_chapter, round_status, round_end_time, paused_time_remaining')
         .eq('id', 1)
         .single();
         
-      if (!settingsError && settingsData) setIsPaused(settingsData.game_paused);
+      if (!settingsError && settingsData) {
+        setGlobalSettings({
+          current_chapter: settingsData.current_chapter,
+          round_status: settingsData.round_status,
+          round_end_time: settingsData.round_end_time,
+          paused_time_remaining: settingsData.paused_time_remaining
+        });
+      }
     } catch (e) {
       console.error(e);
     }
@@ -53,12 +67,82 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const pushToNextRound = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const nextChapter = globalSettings.current_chapter + 1;
+      
+      // Calculate duration
+      let duration = 0;
+      if (nextChapter === 0) duration = 140;
+      else if (nextChapter === 1) duration = 227;
+      else if (nextChapter === 2) duration = 1260;
+      else if (nextChapter === 3) duration = 2040;
+      else if (nextChapter === 4) duration = 2520;
+      else if (nextChapter === 5) duration = 2700;
+
+      const newEndTime = new Date(new Date().getTime() + duration * 1000).toISOString();
+
+      await supabase.from('global_settings').update({
+        current_chapter: nextChapter,
+        round_status: 'active',
+        round_end_time: newEndTime,
+        paused_time_remaining: 0
+      }).eq('id', 1);
+      
+      // Update all teams
+      await supabase.from('teams').update({ active_chapter: nextChapter });
+      
+      fetchDashboardData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const togglePause = async () => {
     try {
       const { supabase } = await import('../lib/supabase');
-      const newState = !isPaused;
-      setIsPaused(newState); // Optimistic update
-      await supabase.from('global_settings').update({ game_paused: newState }).eq('id', 1);
+      if (globalSettings.round_status === 'active') {
+        // Pause
+        let remaining = 0;
+        if (globalSettings.round_end_time) {
+          remaining = Math.max(0, Math.floor((new Date(globalSettings.round_end_time).getTime() - new Date().getTime()) / 1000));
+        }
+        await supabase.from('global_settings').update({
+          round_status: 'paused',
+          round_end_time: null,
+          paused_time_remaining: remaining
+        }).eq('id', 1);
+      } else if (globalSettings.round_status === 'paused') {
+        // Resume
+        const newEndTime = new Date(new Date().getTime() + globalSettings.paused_time_remaining * 1000).toISOString();
+        await supabase.from('global_settings').update({
+          round_status: 'active',
+          round_end_time: newEndTime,
+          paused_time_remaining: 0
+        }).eq('id', 1);
+      }
+      fetchDashboardData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const toggleLock = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const newStatus = globalSettings.round_status === 'waiting' ? 'active' : 'waiting';
+      
+      let newEndTime = globalSettings.round_end_time;
+      if (newStatus === 'active' && globalSettings.round_status === 'waiting') {
+        // Just unlocked, but waiting doesn't pause time, so let's just keep end time.
+        // Wait, if they were waiting, they might not have a timer.
+      }
+
+      await supabase.from('global_settings').update({
+        round_status: newStatus
+      }).eq('id', 1);
+      fetchDashboardData();
     } catch (e) {
       console.error(e);
     }
@@ -159,21 +243,58 @@ const AdminDashboard = () => {
               className="w-full bg-black/40 border border-green-500/30 rounded-xl py-3 pl-12 pr-4 text-white placeholder-green-500/30 focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-all"
             />
           </div>
-          <div className="flex space-x-4">
+          <div className="flex flex-col space-y-2 text-right">
             <button 
               onClick={() => setShowAddModal(true)}
-              className="bg-green-600/10 hover:bg-green-600/20 border border-green-500/50 text-green-400 px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2"
+              className="bg-green-600/10 hover:bg-green-600/20 border border-green-500/50 text-green-400 px-6 py-2 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2"
             >
               <Plus className="w-4 h-4" />
               <span>Add Team</span>
             </button>
-            <button 
-              onClick={togglePause}
-              className={`${isPaused ? 'bg-red-600/20 border-red-500/50 text-red-400 hover:bg-red-600/30' : 'bg-yellow-600/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-600/30'} border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2`}
-            >
-              <Power className="w-4 h-4" />
-              <span>{isPaused ? 'Resume Game' : 'Pause Game'}</span>
-            </button>
+          </div>
+        </div>
+
+        {/* Round Controls */}
+        <div className="bg-black/60 border border-blue-500/30 p-6 rounded-2xl backdrop-blur-sm shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex flex-col">
+              <span className="text-blue-500/50 text-xs uppercase tracking-widest mb-1">Global Round Status</span>
+              <div className="flex items-center space-x-4">
+                <span className="text-3xl font-bold text-blue-400">Chapter {globalSettings.current_chapter}</span>
+                <span className={`px-3 py-1 text-xs border rounded-full uppercase tracking-wider ${
+                  globalSettings.round_status === 'active' ? 'bg-green-500/10 border-green-500/50 text-green-400' :
+                  globalSettings.round_status === 'paused' ? 'bg-red-500/10 border-red-500/50 text-red-400' :
+                  'bg-yellow-500/10 border-yellow-500/50 text-yellow-400'
+                }`}>
+                  {globalSettings.round_status}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-3 w-full md:w-auto justify-end">
+              <button 
+                onClick={pushToNextRound}
+                className="bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30 border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2 flex-1 md:flex-none"
+              >
+                <span>Push Next Round</span>
+              </button>
+              
+              <button 
+                onClick={togglePause}
+                disabled={globalSettings.round_status === 'waiting'}
+                className={`${globalSettings.round_status === 'paused' ? 'bg-green-600/20 border-green-500/50 text-green-400 hover:bg-green-600/30' : 'bg-red-600/20 border-red-500/50 text-red-400 hover:bg-red-600/30'} border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2 flex-1 md:flex-none disabled:opacity-50`}
+              >
+                <Power className="w-4 h-4" />
+                <span>{globalSettings.round_status === 'paused' ? 'Resume' : 'Pause'}</span>
+              </button>
+              
+              <button 
+                onClick={toggleLock}
+                className={`${globalSettings.round_status === 'waiting' ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-600/30' : 'bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600/30'} border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2 flex-1 md:flex-none`}
+              >
+                <span>{globalSettings.round_status === 'waiting' ? 'Unlock Round' : 'Lock Round'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
