@@ -51,77 +51,61 @@ const ProjectZeroDay = () => {
   };
 
   const handleLogin = async (name: string, secret: string, remember: boolean) => {
-    // We import supabase dynamically to avoid issues before it's set up
     const { supabase } = await import('../lib/supabase');
     
-    // Format team name for email
-    const email = `${name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@zeroday.com`;
-    
     try {
-      // First try to sign in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: secret
-      });
-      
-      let userId = '';
-      
-      if (signInError) {
-        // If it's an invalid login credentials error, try signing up instead
-        // This makes login/signup seamless
-        if (signInError.message.includes('Invalid login credentials')) {
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password: secret
-          });
-          
-          if (signUpError) throw signUpError;
-          if (!signUpData.user) throw new Error('Failed to create account');
-          
-          userId = signUpData.user.id;
-          
-          // Initialize team row
-          await supabase.from('teams').insert([{
-            id: userId,
+      // Check if team exists
+      const { data: existingTeam, error: fetchError } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('team_name', name)
+        .maybeSingle();
+
+      let teamId = '';
+
+      if (fetchError) {
+        throw new Error('Database connection failed');
+      }
+
+      if (existingTeam) {
+        // Verify password
+        if (existingTeam.password !== secret) {
+          throw new Error('Invalid team secret (password mismatch)');
+        }
+        teamId = existingTeam.id;
+
+        // Restore game state
+        useGameStore.setState({
+          score: existingTeam.score,
+          timeRemaining: existingTeam.time_remaining,
+          activeChapter: existingTeam.active_chapter,
+          unlockedChapters: existingTeam.unlocked_chapters,
+          chapter1: existingTeam.chapter1 || useGameStore.getState().chapter1,
+          chapter2: existingTeam.chapter2 || useGameStore.getState().chapter2,
+          chapter3: existingTeam.chapter3 || useGameStore.getState().chapter3,
+          chapter4: existingTeam.chapter4 || useGameStore.getState().chapter4,
+          chapter5: existingTeam.chapter5 || useGameStore.getState().chapter5,
+        });
+      } else {
+        // Team does not exist, create a new one seamlessly
+        const { data: newTeam, error: insertError } = await supabase
+          .from('teams')
+          .insert([{
             team_name: name,
+            password: secret,
             score: 0,
             time_remaining: 10800,
             active_chapter: 1,
             unlocked_chapters: [1]
-          }]);
-        } else {
-          throw signInError;
-        }
-      } else {
-        if (!signInData.user) throw new Error('Authentication failed');
-        userId = signInData.user.id;
-        
-        // Fetch team state
-        const { data: teamData, error: fetchError } = await supabase
-          .from('teams')
-          .select('*')
-          .eq('id', userId)
+          }])
+          .select()
           .single();
-          
-        if (fetchError) throw fetchError;
-        
-        // Restore game state
-        if (teamData) {
-          useGameStore.setState({
-            score: teamData.score,
-            timeRemaining: teamData.time_remaining,
-            activeChapter: teamData.active_chapter,
-            unlockedChapters: teamData.unlocked_chapters,
-            chapter1: teamData.chapter1 || useGameStore.getState().chapter1,
-            chapter2: teamData.chapter2 || useGameStore.getState().chapter2,
-            chapter3: teamData.chapter3 || useGameStore.getState().chapter3,
-            chapter4: teamData.chapter4 || useGameStore.getState().chapter4,
-            chapter5: teamData.chapter5 || useGameStore.getState().chapter5,
-          });
-        }
+
+        if (insertError) throw new Error('Failed to create team profile');
+        teamId = newTeam.id;
       }
       
-      setTeam(userId, name);
+      setTeam(teamId, name);
       setShowIntroVideo(true);
     } catch (err: any) {
       throw new Error(err.message || 'Authentication failed');
