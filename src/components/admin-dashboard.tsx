@@ -23,6 +23,37 @@ const AdminDashboard = () => {
     round_end_time: null as string | null,
     paused_time_remaining: 0
   });
+
+  const [timerSecs, setTimerSecs] = useState(0);
+
+  useEffect(() => {
+    const updateTimer = () => {
+      if (globalSettings.round_status === 'paused') {
+        setTimerSecs(globalSettings.paused_time_remaining);
+        return;
+      }
+      if (!globalSettings.round_end_time) {
+        setTimerSecs(0);
+        return;
+      }
+      const end = new Date(globalSettings.round_end_time).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+      setTimerSecs(diff);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [globalSettings.round_end_time, globalSettings.round_status, globalSettings.paused_time_remaining]);
+
+  const formatRoundTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
   
   // Modal state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -268,6 +299,13 @@ const AdminDashboard = () => {
                 }`}>
                   {globalSettings.round_status}
                 </span>
+              </div>
+              <div className="mt-2 text-blue-400 font-mono tracking-widest text-lg font-bold">
+                {globalSettings.round_status === 'active' || globalSettings.round_status === 'paused' ? (
+                  <>TIME REMAINING: <span className="text-white">{formatRoundTime(timerSecs)}</span></>
+                ) : (
+                  <>WAITING FOR OVERSEER</>
+                )}
               </div>
             </div>
             
