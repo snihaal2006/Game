@@ -47,6 +47,32 @@ const ProjectZeroDay = () => {
     }
   }, [showMatrixLoading]);
 
+  // Data Wipe Detection (Polling)
+  useEffect(() => {
+    if (!teamName) return;
+
+    const checkWiped = async () => {
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const currentStore = useGameStore.getState();
+        // If local score is 0, we don't need to force a wipe sync because they either just started or were already wiped
+        if (!currentStore.teamId || currentStore.score === 0) return;
+
+        const { data } = await supabase.from('teams').select('score').eq('id', currentStore.teamId).maybeSingle();
+        if (data && data.score === 0 && currentStore.score > 0) {
+           // Admin wiped the database, but our client still has ghost points!
+           // Force reload to completely clear React state and re-sync cleanly.
+           window.location.reload();
+        }
+      } catch (e) {
+        // silently ignore fetch errors
+      }
+    };
+
+    const interval = setInterval(checkWiped, 5000);
+    return () => clearInterval(interval);
+  }, [teamName]);
+
   const handleInitialSubmit = () => {
     try {
       if (document.documentElement.requestFullscreen) {
