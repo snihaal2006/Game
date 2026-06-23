@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, Globe, Hash, Gamepad2 } from 'lucide-react';
 
 interface LoginFormProps {
     onSubmit: (email: string, password: string, remember: boolean) => void;
+    onInitialSubmit?: () => void;
 }
 
 interface VideoBackgroundProps {
@@ -133,7 +134,7 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrl }) => {
 };
 
 // Main LoginForm Component
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, onInitialSubmit }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -153,6 +154,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
             setLoginError('ACCESS DENIED: Invalid credentials.');
             return;
         }
+
+        if (onInitialSubmit) onInitialSubmit();
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         setIsSuccess(true);

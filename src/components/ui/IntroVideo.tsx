@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 
 // Declare global YT interface
 declare global {
@@ -12,11 +12,27 @@ interface IntroVideoProps {
   onEnd: () => void;
 }
 
-const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
+export interface IntroVideoRef {
+  play: () => void;
+}
+
+const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const onEndRef = useRef(onEnd);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // Expose play method to parent
+  useImperativeHandle(ref, () => ({
+    play: () => {
+      if (playerRef.current && playerRef.current.playVideo) {
+        playerRef.current.playVideo();
+      }
+      setHasStarted(true);
+    }
+  }));
 
   // Keep the ref updated with the latest callback
   useEffect(() => {
@@ -26,10 +42,12 @@ const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
   useEffect(() => {
     // Initialize player when API is ready
     const initPlayer = () => {
+      if (!window.YT || !window.YT.Player) return;
       playerRef.current = new window.YT.Player('yt-player-container', {
         videoId: 'aX1P1BSpbN4',
         playerVars: {
-          autoplay: 1,
+          autoplay: 0,
+          mute: 0, // Unmuted!
           controls: 0,
           modestbranding: 1,
           rel: 0,
@@ -39,6 +57,9 @@ const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
           playsinline: 1,
         },
         events: {
+          onReady: (event: any) => {
+            setIsReady(true);
+          },
           onStateChange: (event: any) => {
             // event.data: 1 = playing, 0 = ended
             if (event.data === 1) {
@@ -56,10 +77,25 @@ const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-      window.onYouTubeIframeAPIReady = initPlayer;
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        document.head.appendChild(tag);
+      }
+      
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prev) prev();
+        initPlayer();
+      };
     } else if (window.YT && window.YT.Player) {
       initPlayer();
+    } else {
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prev) prev();
+        initPlayer();
+      };
     }
 
     return () => {
@@ -113,7 +149,7 @@ const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
           position: 'absolute',
           bottom: 32,
           right: 32,
-          zIndex: 20,
+          zIndex: 40,
           background: 'rgba(0,0,0,0.7)',
           border: '1px solid #00ff41',
           color: '#00ff41',
@@ -137,6 +173,6 @@ const IntroVideo: React.FC<IntroVideoProps> = ({ onEnd }) => {
       </button>
     </div>
   );
-};
+});
 
 export default IntroVideo;
