@@ -228,7 +228,7 @@ const AdminDashboard = () => {
         chapter3: {},
         chapter4: {},
         chapter5: {}
-      }).neq('id', ''); // update all rows
+      }).not('id', 'is', null); // update all rows
       
       fetchDashboardData();
     } catch (e) {
