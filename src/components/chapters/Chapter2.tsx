@@ -758,7 +758,7 @@ https://skcet-portal-login.xyz`}
                     CONVERT BINARY TO DECIMAL TO WORD
                   </div>
                   <div style={{ ...orbitron, fontSize: 18, color: '#00ff41', letterSpacing: 4, textAlign: 'center', margin: '16px 0', textShadow: '0 0 10px #00ff41' }}>
-                    01010011 01001011<br/>01000011 01000101 01010100
+                    00010011 00001011<br/>00000011 00000101 00010100
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <span style={{ color: '#00ff41' }}>&gt;</span>
