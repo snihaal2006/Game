@@ -40,6 +40,8 @@ const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) =
   }, [onEnd]);
 
   useEffect(() => {
+    let checkEndInterval: ReturnType<typeof setInterval>;
+
     // Initialize player when API is ready
     const initPlayer = () => {
       if (!window.YT || !window.YT.Player) return;
@@ -71,6 +73,18 @@ const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) =
           },
         },
       });
+
+      // Robust check for video ending (sometimes YT API drops the 0 event)
+      checkEndInterval = setInterval(() => {
+        if (playerRef.current && playerRef.current.getCurrentTime && playerRef.current.getDuration) {
+          const currentTime = playerRef.current.getCurrentTime();
+          const duration = playerRef.current.getDuration();
+          if (duration > 0 && currentTime >= duration - 0.5) {
+            onEndRef.current();
+            clearInterval(checkEndInterval);
+          }
+        }
+      }, 500);
     };
 
     // Load YouTube API if not already loaded
@@ -100,6 +114,7 @@ const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) =
     }
 
     return () => {
+      if (checkEndInterval) clearInterval(checkEndInterval);
       if (playerRef.current && playerRef.current.destroy) {
         playerRef.current.destroy();
       }
