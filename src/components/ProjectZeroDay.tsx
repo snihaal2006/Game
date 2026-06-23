@@ -106,11 +106,12 @@ const ProjectZeroDay = () => {
       }
       
       setTeam(teamId, name);
-      if (existingTeam) {
+      // If time hasn't been touched, it's their first time playing
+      if (existingTeam.time_remaining === 10800 && existingTeam.score === 0 && existingTeam.active_chapter === 1) {
+        setShowIntroVideo(true);
+      } else {
         setIntroVideoFinished(true);
         setShowMatrixLoading(true);
-      } else {
-        setShowIntroVideo(true);
       }
     } catch (err: any) {
       throw new Error(err.message || 'Authentication failed');
@@ -162,7 +163,7 @@ const ProjectZeroDay = () => {
       )}
 
       {/* Matrix Loading Screen */}
-      {teamName && !showIntroVideo && !introVideoFinished && showMatrixLoading && (
+      {teamName && !showIntroVideo && showMatrixLoading && (
         <div className="relative bg-black min-h-screen w-full flex items-center justify-center font-mono z-40">
           <MatrixRain 
             fontSize={18}
