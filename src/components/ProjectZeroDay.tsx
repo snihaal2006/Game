@@ -10,6 +10,7 @@ import Chapter5 from './chapters/Chapter5';
 import LoginPage from './ui/gaming-login';
 import { DataWipeBackground } from './ui/DataWipeBackground';
 import { BinarySkull } from './ui/BinarySkull';
+import { AntiCheatOverlay } from './ui/AntiCheatOverlay';
 
 import { TransmissionPopup } from './ui/TransmissionPopup';
 
@@ -64,6 +65,9 @@ const ProjectZeroDay = () => {
   return (
     <div className="min-h-screen bg-black text-[#00ff41] font-mono overflow-hidden flex flex-col relative selection:bg-[#00ff41] selection:text-black">
       
+      {/* Anti-Cheat System */}
+      <AntiCheatOverlay isActive={!!teamName} />
+
       {/* Intro Video always mounted to initialize iframe, visually revealed when showIntroVideo is true */}
       {!introVideoFinished && (
         <div style={{
