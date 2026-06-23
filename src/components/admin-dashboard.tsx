@@ -189,6 +189,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const restartEvent = async () => {
+    if (!window.confirm("Are you sure you want to RESTART the entire event? This will wipe all team scores, progress, and timers!")) {
+      return;
+    }
+    try {
+      const { supabase } = await import('../lib/supabase');
+      
+      // Reset global settings
+      await supabase.from('global_settings').update({
+        current_chapter: 0,
+        round_status: 'waiting',
+        round_end_time: null,
+        paused_time_remaining: 0
+      }).eq('id', 1);
+      
+      // Reset all teams progress
+      await supabase.from('teams').update({
+        score: 0,
+        time_remaining: 10800,
+        active_chapter: 1,
+        unlocked_chapters: [1],
+        disqualified: false,
+        tab_switches: 0,
+        chapter1: {},
+        chapter2: {},
+        chapter3: {},
+        chapter4: {},
+        chapter5: {}
+      }).neq('id', ''); // update all rows
+      
+      fetchDashboardData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleAddTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError('');
@@ -299,7 +335,13 @@ const AdminDashboard = () => {
                 }`}>
                   {globalSettings.round_status}
                 </span>
-              </div>
+                <button 
+                onClick={restartEvent}
+                className={`bg-red-900/40 border-red-500/50 text-red-400 hover:bg-red-800/50 border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2 flex-1 md:flex-none`}
+              >
+                <span>Restart Event</span>
+              </button>
+            </div>
               <div className="mt-2 text-blue-400 font-mono tracking-widest text-lg font-bold">
                 {globalSettings.round_status === 'active' || globalSettings.round_status === 'paused' ? (
                   <>TIME REMAINING: <span className="text-white">{formatRoundTime(timerSecs)}</span></>
