@@ -13,20 +13,35 @@ const Scoreboard = () => {
   const [leaderboard, setLeaderboard] = useState<TeamScore[]>([]);
 
   useEffect(() => {
-    // Mock data fetching. Will integrate Firebase later.
-    const mockData: TeamScore[] = [
-      { id: '1', name: 'Neon Samurai', score: 4500, chapter: 5 },
-      { id: '2', name: 'Cyber Phantoms', score: 4200, chapter: 5 },
-      { id: '3', name: 'Binary Bandits', score: 3800, chapter: 4 },
-      { id: '4', name: 'Quantum Hackers', score: 3100, chapter: 3 },
-      { id: '5', name: 'Glitch Mob', score: 2500, chapter: 3 },
-      { id: '6', name: 'Syntax Errors', score: 1800, chapter: 2 },
-      { id: '7', name: 'Null Pointers', score: 1200, chapter: 2 },
-      { id: '8', name: 'Logic Gates', score: 900, chapter: 1 },
-      { id: '9', name: 'Packet Sniffers', score: 500, chapter: 1 },
-      { id: '10', name: 'Script Kiddies', score: 100, chapter: 1 },
-    ];
-    setLeaderboard(mockData.sort((a, b) => b.score - a.score));
+    const fetchLeaderboard = async () => {
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const { data, error } = await supabase
+          .from('teams')
+          .select('id, team_name, score, active_chapter')
+          .order('score', { ascending: false })
+          .limit(10);
+          
+        if (error) throw error;
+        
+        if (data) {
+          setLeaderboard(data.map(team => ({
+            id: team.id,
+            name: team.team_name,
+            score: team.score,
+            chapter: team.active_chapter
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err);
+      }
+    };
+    
+    fetchLeaderboard();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchLeaderboard, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

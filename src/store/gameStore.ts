@@ -128,14 +128,20 @@ export const useGameStore = create<GameState>((set) => ({
   
   decrementTime: () => set((state) => ({ timeRemaining: Math.max(0, state.timeRemaining - 1) })),
 
-  decryptChapter1: () => set((state) => ({
-    chapter1: { ...state.chapter1, isDecrypted: true }
-  })),
+  decryptChapter1: () => set((state) => {
+    if (state.chapter1.isDecrypted) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
+    return {
+      score: state.score + 250 + timeBonus,
+      chapter1: { ...state.chapter1, isDecrypted: true }
+    };
+  }),
 
   solveChapter1Question: (questionId, points) => set((state) => {
     if (state.chapter1.solvedQuestions.includes(questionId)) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
     return {
-      score: state.score + points,
+      score: state.score + points + timeBonus,
       chapter1: {
         ...state.chapter1,
         solvedQuestions: [...state.chapter1.solvedQuestions, questionId]
@@ -151,14 +157,20 @@ export const useGameStore = create<GameState>((set) => ({
     unlockedChapters: state.unlockedChapters.includes(2) ? state.unlockedChapters : [...state.unlockedChapters, 2]
   })),
 
-  decryptChapter2: () => set((state) => ({
-    chapter2: { ...state.chapter2, isDecrypted: true }
-  })),
+  decryptChapter2: () => set((state) => {
+    if (state.chapter2.isDecrypted) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
+    return {
+      score: state.score + 250 + timeBonus,
+      chapter2: { ...state.chapter2, isDecrypted: true }
+    };
+  }),
 
   solveChapter2Question: (questionId, points) => set((state) => {
     if (state.chapter2.solvedQuestions.includes(questionId)) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
     return {
-      score: state.score + points,
+      score: state.score + points + timeBonus,
       chapter2: {
         ...state.chapter2,
         solvedQuestions: [...state.chapter2.solvedQuestions, questionId]
@@ -174,14 +186,20 @@ export const useGameStore = create<GameState>((set) => ({
     unlockedChapters: state.unlockedChapters.includes(3) ? state.unlockedChapters : [...state.unlockedChapters, 3]
   })),
 
-  decryptChapter3: () => set((state) => ({
-    chapter3: { ...state.chapter3, isDecrypted: true }
-  })),
+  decryptChapter3: () => set((state) => {
+    if (state.chapter3.isDecrypted) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
+    return {
+      score: state.score + 250 + timeBonus,
+      chapter3: { ...state.chapter3, isDecrypted: true }
+    };
+  }),
 
   solveChapter3Question: (questionId, points) => set((state) => {
     if (state.chapter3.solvedQuestions.includes(questionId)) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
     return {
-      score: state.score + points,
+      score: state.score + points + timeBonus,
       chapter3: {
         ...state.chapter3,
         solvedQuestions: [...state.chapter3.solvedQuestions, questionId]
@@ -197,14 +215,20 @@ export const useGameStore = create<GameState>((set) => ({
     unlockedChapters: state.unlockedChapters.includes(4) ? state.unlockedChapters : [...state.unlockedChapters, 4]
   })),
 
-  decryptChapter4: () => set((state) => ({
-    chapter4: { ...state.chapter4, isDecrypted: true }
-  })),
+  decryptChapter4: () => set((state) => {
+    if (state.chapter4.isDecrypted) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
+    return {
+      score: state.score + 250 + timeBonus,
+      chapter4: { ...state.chapter4, isDecrypted: true }
+    };
+  }),
 
   solveChapter4Question: (questionId, points) => set((state) => {
     if (state.chapter4.solvedQuestions.includes(questionId)) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
     return {
-      score: state.score + points,
+      score: state.score + points + timeBonus,
       chapter4: {
         ...state.chapter4,
         solvedQuestions: [...state.chapter4.solvedQuestions, questionId]
@@ -220,14 +244,20 @@ export const useGameStore = create<GameState>((set) => ({
     unlockedChapters: state.unlockedChapters.includes(5) ? state.unlockedChapters : [...state.unlockedChapters, 5]
   })),
 
-  decryptChapter5: () => set((state) => ({
-    chapter5: { ...state.chapter5, isDecrypted: true }
-  })),
+  decryptChapter5: () => set((state) => {
+    if (state.chapter5.isDecrypted) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
+    return {
+      score: state.score + 250 + timeBonus,
+      chapter5: { ...state.chapter5, isDecrypted: true }
+    };
+  }),
 
   solveChapter5Question: (questionId, points) => set((state) => {
     if (state.chapter5.solvedQuestions.includes(questionId)) return state;
+    const timeBonus = Math.floor(state.timeRemaining / 100);
     return {
-      score: state.score + points,
+      score: state.score + points + timeBonus,
       chapter5: {
         ...state.chapter5,
         solvedQuestions: [...state.chapter5.solvedQuestions, questionId]
@@ -242,3 +272,31 @@ export const useGameStore = create<GameState>((set) => ({
     }
   }))
 }));
+
+// Subscribe to state changes and sync to Supabase
+useGameStore.subscribe(async (state, prevState) => {
+  // Only sync if logged in and state has meaningfully changed
+  if (state.teamId && (
+    state.score !== prevState.score ||
+    state.activeChapter !== prevState.activeChapter ||
+    state.unlockedChapters.length !== prevState.unlockedChapters.length ||
+    state.chapter1 !== prevState.chapter1 ||
+    state.chapter2 !== prevState.chapter2 ||
+    state.chapter3 !== prevState.chapter3 ||
+    state.chapter4 !== prevState.chapter4 ||
+    state.chapter5 !== prevState.chapter5
+  )) {
+    const { supabase } = await import('../lib/supabase');
+    await supabase.from('teams').update({
+      score: state.score,
+      time_remaining: state.timeRemaining,
+      active_chapter: state.activeChapter,
+      unlocked_chapters: state.unlockedChapters,
+      chapter1: state.chapter1,
+      chapter2: state.chapter2,
+      chapter3: state.chapter3,
+      chapter4: state.chapter4,
+      chapter5: state.chapter5
+    }).eq('id', state.teamId);
+  }
+});

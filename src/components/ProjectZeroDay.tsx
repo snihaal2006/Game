@@ -51,8 +51,81 @@ const ProjectZeroDay = () => {
   };
 
   const handleLogin = async (name: string, secret: string, remember: boolean) => {
-    setTeam('team-' + Date.now(), name);
-    setShowIntroVideo(true);
+    // We import supabase dynamically to avoid issues before it's set up
+    const { supabase } = await import('../lib/supabase');
+    
+    // Format team name for email
+    const email = `${name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@zeroday.com`;
+    
+    try {
+      // First try to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: secret
+      });
+      
+      let userId = '';
+      
+      if (signInError) {
+        // If it's an invalid login credentials error, try signing up instead
+        // This makes login/signup seamless
+        if (signInError.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password: secret
+          });
+          
+          if (signUpError) throw signUpError;
+          if (!signUpData.user) throw new Error('Failed to create account');
+          
+          userId = signUpData.user.id;
+          
+          // Initialize team row
+          await supabase.from('teams').insert([{
+            id: userId,
+            team_name: name,
+            score: 0,
+            time_remaining: 10800,
+            active_chapter: 1,
+            unlocked_chapters: [1]
+          }]);
+        } else {
+          throw signInError;
+        }
+      } else {
+        if (!signInData.user) throw new Error('Authentication failed');
+        userId = signInData.user.id;
+        
+        // Fetch team state
+        const { data: teamData, error: fetchError } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        // Restore game state
+        if (teamData) {
+          useGameStore.setState({
+            score: teamData.score,
+            timeRemaining: teamData.time_remaining,
+            activeChapter: teamData.active_chapter,
+            unlockedChapters: teamData.unlocked_chapters,
+            chapter1: teamData.chapter1 || useGameStore.getState().chapter1,
+            chapter2: teamData.chapter2 || useGameStore.getState().chapter2,
+            chapter3: teamData.chapter3 || useGameStore.getState().chapter3,
+            chapter4: teamData.chapter4 || useGameStore.getState().chapter4,
+            chapter5: teamData.chapter5 || useGameStore.getState().chapter5,
+          });
+        }
+      }
+      
+      setTeam(userId, name);
+      setShowIntroVideo(true);
+    } catch (err: any) {
+      throw new Error(err.message || 'Authentication failed');
+    }
   };
 
   const formatTime = (seconds: number) => {

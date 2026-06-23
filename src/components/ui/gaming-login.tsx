@@ -135,8 +135,8 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrl }) => {
 
 // Main LoginForm Component
 const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, onInitialSubmit }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('Demo Team');
+    const [password, setPassword] = useState('demo123');
     const [showPassword, setShowPassword] = useState(false);
     const [remember, setRemember] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,22 +148,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, onInitialSubmit }) => {
         setIsSubmitting(true);
         setLoginError('');
 
-        // Simple hardcoded credentials
-        if (email !== 'admin' || password !== 'admin123') {
+        try {
+            if (onInitialSubmit) onInitialSubmit();
+            
+            // Assume onSubmit handles Supabase auth
+            await onSubmit(email, password, remember);
+
+            setIsSuccess(true);
+            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (err: any) {
+            setLoginError(err.message || 'ACCESS DENIED: Authentication failed.');
+        } finally {
             setIsSubmitting(false);
-            setLoginError('ACCESS DENIED: Invalid credentials.');
-            return;
         }
-
-        if (onInitialSubmit) onInitialSubmit();
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsSuccess(true);
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        onSubmit(email, password, remember);
-        setIsSubmitting(false);
-        setIsSuccess(false);
     };
 
     return (

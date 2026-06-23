@@ -260,7 +260,7 @@ const Chapter1: React.FC = () => {
       setTransitionText('ARP IMPOSTER VERIFIED. LOADING MAIN TERMINAL...');
       setIsTransitioning(true);
       setTimeout(() => {
-        solveChapter1Question('q1', 10);
+        solveChapter1Question('q1', 100);
         setIsTransitioning(false);
       }, 3500);
     }
@@ -274,7 +274,7 @@ const Chapter1: React.FC = () => {
       setTransitionText('VULNERABILITY IDENTIFIED. ACCESSING NEXT NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
-        solveChapter1Question('q2', 10);
+        solveChapter1Question('q2', 200);
         setIsTransitioning(false);
       }, 3500);
     }
@@ -288,7 +288,7 @@ const Chapter1: React.FC = () => {
       setTransitionText('BUG IDENTIFIED. DECRYPTING FINAL NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
-        solveChapter1Question('q3', 10);
+        solveChapter1Question('q3', 300);
         setIsTransitioning(false);
       }, 3500);
     }

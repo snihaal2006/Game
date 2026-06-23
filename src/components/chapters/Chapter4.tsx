@@ -362,7 +362,7 @@ const Chapter4: React.FC = () => {
       setTransitionText('SECURE CONNECTION ESTABLISHED. ACCESSING NEXT NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
-        solveChapter4Question('q1', 10);
+        solveChapter4Question('q1', 100);
         setIsTransitioning(false);
       }, 3500);
     } else {
@@ -379,7 +379,7 @@ const Chapter4: React.FC = () => {
       setTransitionText('IMAGE DECODED. ACCESSING NEXT NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
-        solveChapter4Question('q2', 10);
+        solveChapter4Question('q2', 200);
         setIsTransitioning(false);
       }, 3500);
     }
@@ -392,7 +392,7 @@ const Chapter4: React.FC = () => {
       setTransitionText('DEBUG SUCCESSFUL. DECRYPTING FINAL NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
-        solveChapter4Question('q3', 10);
+        solveChapter4Question('q3', 300);
         setIsTransitioning(false);
       }, 3500);
     }
