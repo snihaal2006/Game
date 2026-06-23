@@ -43,6 +43,7 @@ const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) =
     // Initialize player when API is ready
     const initPlayer = () => {
       if (!window.YT || !window.YT.Player) return;
+      
       playerRef.current = new window.YT.Player('yt-player-container', {
         videoId: 'aX1P1BSpbN4',
         playerVars: {
