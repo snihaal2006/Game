@@ -106,7 +106,12 @@ const ProjectZeroDay = () => {
       }
       
       setTeam(teamId, name);
-      setShowIntroVideo(true);
+      if (existingTeam) {
+        setIntroVideoFinished(true);
+        setShowMatrixLoading(true);
+      } else {
+        setShowIntroVideo(true);
+      }
     } catch (err: any) {
       throw new Error(err.message || 'Authentication failed');
     }
