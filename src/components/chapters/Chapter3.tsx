@@ -254,9 +254,22 @@ const Chapter3: React.FC = () => {
 
   // Countdown timer
   useEffect(() => {
-    const t = setInterval(() => setTimerSecs(s => Math.max(0, s - 1)), 1000);
+    const updateTimer = () => {
+      if (globalState.round_status === 'paused') return;
+      if (!globalState.round_end_time) {
+        setTimerSecs(0);
+        return;
+      }
+      const end = new Date(globalState.round_end_time).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+      setTimerSecs(diff);
+    };
+
+    updateTimer();
+    const t = setInterval(updateTimer, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [globalState.round_end_time, globalState.round_status]);
 
   // Skull binary flicker
   useEffect(() => {
