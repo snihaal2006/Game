@@ -55,9 +55,6 @@ const ProjectZeroDay = () => {
     } catch (err) {
       console.warn("Fullscreen request failed", err);
     }
-    if (introVideoRef.current) {
-      introVideoRef.current.play();
-    }
   };
 
   const handleLogin = async (name: string, secret: string, remember: boolean) => {
@@ -103,9 +100,12 @@ const ProjectZeroDay = () => {
       }
       
       setTeam(teamId, name);
+      
+      const currentGlobal = useGameStore.getState().globalState;
+
       // Wait logic
-      if (globalState.current_chapter === 0) {
-        if (globalState.round_status === 'active') {
+      if (currentGlobal.current_chapter === 0) {
+        if (currentGlobal.round_status === 'active') {
           setShowIntroVideo(true);
         } else {
           // Waiting for round 0 to start
@@ -146,6 +146,7 @@ const ProjectZeroDay = () => {
         }}>
           <IntroVideo 
             ref={introVideoRef}
+            shouldPlay={showIntroVideo}
             onEnd={() => {
               setShowIntroVideo(false);
               setIntroVideoFinished(true);

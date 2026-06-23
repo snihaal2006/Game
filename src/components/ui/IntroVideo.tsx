@@ -10,13 +10,14 @@ declare global {
 
 interface IntroVideoProps {
   onEnd: () => void;
+  shouldPlay: boolean;
 }
 
 export interface IntroVideoRef {
   play: () => void;
 }
 
-const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) => {
+const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd, shouldPlay }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const onEndRef = useRef(onEnd);
@@ -33,6 +34,14 @@ const IntroVideo = forwardRef<IntroVideoRef, IntroVideoProps>(({ onEnd }, ref) =
       setHasStarted(true);
     }
   }));
+
+  // Auto-play when shouldPlay becomes true and player is ready
+  useEffect(() => {
+    if (shouldPlay && isReady && playerRef.current && playerRef.current.playVideo) {
+      playerRef.current.playVideo();
+      setHasStarted(true);
+    }
+  }, [shouldPlay, isReady]);
 
   // Keep the ref updated with the latest callback
   useEffect(() => {
