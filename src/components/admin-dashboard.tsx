@@ -215,20 +215,26 @@ const AdminDashboard = () => {
         paused_time_remaining: 0
       }).eq('id', 1);
       
-      // Reset all teams progress
-      await supabase.from('teams').update({
-        score: 0,
-        time_remaining: 10800,
-        active_chapter: 1,
-        unlocked_chapters: [1],
-        disqualified: false,
-        tab_switches: 0,
-        chapter1: {},
-        chapter2: {},
-        chapter3: {},
-        chapter4: {},
-        chapter5: {}
-      }).not('id', 'is', null); // update all rows
+      // Fetch all teams first to bypass bulk update restrictions
+      const { data: allTeams } = await supabase.from('teams').select('id');
+      if (allTeams) {
+        const resetPromises = allTeams.map((t: any) => 
+          supabase.from('teams').update({
+            score: 0,
+            time_remaining: 10800,
+            active_chapter: 1,
+            unlocked_chapters: [1],
+            disqualified: false,
+            tab_switches: 0,
+            chapter1: {},
+            chapter2: {},
+            chapter3: {},
+            chapter4: {},
+            chapter5: {}
+          }).eq('id', t.id)
+        );
+        await Promise.all(resetPromises);
+      }
       
       fetchDashboardData();
     } catch (e) {
