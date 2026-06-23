@@ -199,6 +199,8 @@ const Chapter5: React.FC = () => {
   const [extraLogs, setExtraLogs] = useState<{ tag: string; msg: string; color: string }[]>([]);
 
   // Post-unlock question state
+  const [q1Input, setQ1Input] = useState('clue[i] - 7');
+  const [q1Output, setQ1Output] = useState('');
   const [q2Answer, setQ2Answer] = useState('');
   const [q3Answer, setQ3Answer] = useState('');
   const [introRead, setIntroRead] = useState(false);
@@ -352,17 +354,34 @@ const Chapter5: React.FC = () => {
     setInputPlaceholder('WRONG WORD — TRY AGAIN...');
   };
 
-  const handleQ1 = (url: string) => {
-    if (url === 'clue[i] - 5') {
-      setTransitionText('SECURE CONNECTION ESTABLISHED. ACCESSING NEXT NODE...');
-      setIsTransitioning(true);
-      setTimeout(() => {
-        solveChapter5Question('q1', 100);
-        setIsTransitioning(false);
-      }, 3500);
-    } else {
+  const handleRunQ1 = () => {
+    try {
+      const clue = [95, 74, 87, 84];
+      let out = "";
+      for (let i = 0; i < clue.length; i++) {
+        const fn = new Function('clue', 'i', `return ${q1Input};`);
+        const n = fn(clue, i);
+        if (typeof n !== 'number' || isNaN(n)) throw new Error("Invalid output");
+        out += String.fromCharCode(n);
+      }
+      setQ1Output(out);
+      
+      if (out === "ZERO") {
+        setTransitionText('CODE FIXED. ACCESSING NEXT NODE...');
+        setIsTransitioning(true);
+        setTimeout(() => {
+          solveChapter5Question('q1', 100);
+          setIsTransitioning(false);
+        }, 3500);
+      } else {
+        setAttempts(a => a + 1);
+        const errLog = { tag: '[ERR]', msg: `OUTPUT MISMATCH: "${out}"`, color: '#ff0000' };
+        setLogs(prev => [errLog, ...prev].slice(0, 5));
+      }
+    } catch (err) {
+      setQ1Output("Compiler Error");
       setAttempts(a => a + 1);
-      const errLog = { tag: '[ERR]', msg: `CONNECTION REJECTED: INSECURE OR INVALID ORIGIN`, color: '#ff0000' };
+      const errLog = { tag: '[ERR]', msg: `COMPILE ERROR. PATCH REJECTED.`, color: '#ff0000' };
       setLogs(prev => [errLog, ...prev].slice(0, 5));
     }
   };
@@ -950,7 +969,8 @@ https://skcet-portal-login.xyz`}
                       [TECHNICAL] FIX THE CODE:
                     </div>
                     <div style={{ fontSize: 13, color: '#00ffff', marginBottom: 16, lineHeight: 1.5 }}>
-                      The code below has a bug. Fix it to decode the word 'ZERO'.
+                      The code below has a bug. Fix it to decode the word 'ZERO'.<br/>
+                      You can only edit the highlighted line.
                     </div>
                     <pre style={{ ...mono, fontSize: 13, color: '#ffd700', background: 'rgba(20,15,0,0.8)', padding: 16, borderLeft: '2px solid #ffd700', marginBottom: 20, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
 {`public class Main {
@@ -959,44 +979,54 @@ https://skcet-portal-login.xyz`}
         int[] clue = {95, 74, 87, 84};
 
         for(int i = 0; i < clue.length; i++) {
-            int n = clue[i] - 7;  // <-- BUG HERE
+            int n = `}<input 
+                value={q1Input}
+                onChange={e => setQ1Input(e.target.value)}
+                style={{
+                  ...mono,
+                  background: 'rgba(0,50,0,0.8)',
+                  border: '1px solid #00ff41',
+                  color: '#00ff41',
+                  fontSize: 13,
+                  padding: '2px 6px',
+                  width: '140px',
+                  outline: 'none',
+                  marginLeft: '4px'
+                }}
+              />{`;
             char decoded = (char)(n);
             System.out.print(decoded);
         }
     }
 }`}
                     </pre>
-                    <div style={{ fontSize: 12, color: '#ffd700', marginBottom: 16 }}>Select the correct fix:</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {['clue[i] - 5', 'clue[i] - 7', 'clue[i] + 5'].map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => handleQ1(option)}
-                          style={{
-                            ...mono,
-                            padding: '12px 16px',
-                            background: '#1a1000',
-                            border: '1px solid #ffd700',
-                            color: '#ffd700',
-                            cursor: 'pointer',
-                            fontSize: 14,
-                            textAlign: 'left',
-                            transition: 'all 0.2s',
-                            letterSpacing: 1,
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = '#2a1a00';
-                            e.currentTarget.style.boxShadow = '0 0 10px rgba(255,215,0,0.2)';
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = '#1a1000';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <span style={{ color: '#ffd700', marginRight: 12 }}>▶</span>
-                          {option}
-                        </button>
-                      ))}
+
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16 }}>
+                      <button
+                        onClick={handleRunQ1}
+                        style={{
+                          ...mono,
+                          padding: '10px 24px',
+                          background: '#1a1000',
+                          border: '1px solid #00ff41',
+                          color: '#00ff41',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 'bold',
+                          letterSpacing: 2,
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#003300' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#1a1000' }}
+                      >
+                        [ RUN CODE ]
+                      </button>
+                      
+                      {q1Output && (
+                        <div style={{ color: q1Output === 'ZERO' ? '#00ff41' : '#ffaa00', fontSize: 14, ...mono, letterSpacing: 2 }}>
+                          {q1Output === 'ZERO' ? `[SUCCESS] Output: ${q1Output}` : `[FAILED] Output: ${q1Output}`}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>
