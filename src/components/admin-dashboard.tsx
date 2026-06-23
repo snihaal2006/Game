@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Users, Shield, Settings, Search, Terminal, Plus, Power, Activity } from 'lucide-react';
 import MatrixRain from './ui/matrix-code';
 
@@ -25,6 +25,7 @@ const AdminDashboard = () => {
   });
 
   const [timerSecs, setTimerSecs] = useState(0);
+  const isPushingRef = useRef(false);
 
   useEffect(() => {
     const updateTimer = () => {
@@ -40,6 +41,16 @@ const AdminDashboard = () => {
       const now = new Date().getTime();
       const diff = Math.max(0, Math.floor((end - now) / 1000));
       setTimerSecs(diff);
+
+      if (diff === 0 && globalSettings.round_status === 'active' && globalSettings.current_chapter < 5) {
+        if (!isPushingRef.current) {
+          isPushingRef.current = true;
+          pushToNextRound().finally(() => {
+            // reset ref after a short delay to ensure DB updated
+            setTimeout(() => { isPushingRef.current = false; }, 3000);
+          });
+        }
+      }
     };
 
     updateTimer();
@@ -106,11 +117,11 @@ const AdminDashboard = () => {
       // Calculate duration
       let duration = 0;
       if (nextChapter === 0) duration = 140;
-      else if (nextChapter === 1) duration = 227;
-      else if (nextChapter === 2) duration = 1260;
-      else if (nextChapter === 3) duration = 2040;
-      else if (nextChapter === 4) duration = 2520;
-      else if (nextChapter === 5) duration = 2700;
+      else if (nextChapter === 1) duration = 1740; // 29 mins
+      else if (nextChapter === 2) duration = 1500; // 25 mins
+      else if (nextChapter === 3) duration = 2220; // 37 mins
+      else if (nextChapter === 4) duration = 2700; // 45 mins
+      else if (nextChapter === 5) duration = 2700; // 45 mins
 
       const newEndTime = new Date(new Date().getTime() + duration * 1000).toISOString();
 

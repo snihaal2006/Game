@@ -777,7 +777,7 @@ https://skcet-portal-login.xyz`}
               animation: (!chapter3.isDecrypted && gatewayTimer <= 3) ? 'flickerTimer 0.5s linear infinite' : 'flickerTimer 3s linear infinite',
               lineHeight: 1,
             }}>
-              {!chapter3.isDecrypted ? `00:00:${gatewayTimer.toString().padStart(2, '0')}` : formatTime(timerSecs)}
+              {formatTime(timerSecs)}
             </div>
             <div style={{ fontSize: 9, color: '#554400', letterSpacing: 4, marginTop: 4 }}>
               UNTIL TOTAL ERASURE
