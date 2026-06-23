@@ -201,7 +201,7 @@ const AdminDashboard = () => {
   };
 
   const restartEvent = async () => {
-    if (!window.confirm("Are you sure you want to RESTART the entire event? This will wipe all team scores, progress, and timers!")) {
+    if (!window.confirm("CRITICAL WARNING: Are you sure you want to WIPE ALL DATA? This will completely erase all team scores, progress, and reset the clock!")) {
       return;
     }
     try {
@@ -229,6 +229,27 @@ const AdminDashboard = () => {
         chapter4: {},
         chapter5: {}
       }).neq('id', ''); // update all rows
+      
+      fetchDashboardData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const resetTimeline = async () => {
+    if (!window.confirm("Are you sure you want to REWIND the timeline? This will reset everyone back to Chapter 0 waiting, but WILL KEEP their existing scores and progress.")) {
+      return;
+    }
+    try {
+      const { supabase } = await import('../lib/supabase');
+      
+      // Reset global settings ONLY
+      await supabase.from('global_settings').update({
+        current_chapter: 0,
+        round_status: 'waiting',
+        round_end_time: null,
+        paused_time_remaining: 0
+      }).eq('id', 1);
       
       fetchDashboardData();
     } catch (e) {
@@ -347,10 +368,16 @@ const AdminDashboard = () => {
                   {globalSettings.round_status}
                 </span>
                 <button 
+                onClick={resetTimeline}
+                className={`bg-orange-900/40 border-orange-500/50 text-orange-400 hover:bg-orange-800/50 border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2 flex-1 md:flex-none`}
+              >
+                <span>Rewind Timeline</span>
+              </button>
+                <button 
                 onClick={restartEvent}
                 className={`bg-red-900/40 border-red-500/50 text-red-400 hover:bg-red-800/50 border px-6 py-3 rounded-xl uppercase tracking-wider transition-colors flex items-center justify-center space-x-2 flex-1 md:flex-none`}
               >
-                <span>Restart Event</span>
+                <span>Wipe All Data</span>
               </button>
             </div>
               <div className="mt-2 text-blue-400 font-mono tracking-widest text-lg font-bold">

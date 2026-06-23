@@ -202,7 +202,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   decryptChapter1: () => set((state) => {
     if (state.chapter1.isDecrypted) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + 250 + timeBonus,
       chapter1: { ...state.chapter1, isDecrypted: true }
@@ -211,7 +211,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   solveChapter1Question: (questionId, points) => set((state) => {
     if (state.chapter1.solvedQuestions.includes(questionId)) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + points + timeBonus,
       chapter1: {
@@ -231,7 +231,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   decryptChapter2: () => set((state) => {
     if (state.chapter2.isDecrypted) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + 250 + timeBonus,
       chapter2: { ...state.chapter2, isDecrypted: true }
@@ -240,7 +240,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   solveChapter2Question: (questionId, points) => set((state) => {
     if (state.chapter2.solvedQuestions.includes(questionId)) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + points + timeBonus,
       chapter2: {
@@ -260,7 +260,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   decryptChapter3: () => set((state) => {
     if (state.chapter3.isDecrypted) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + 250 + timeBonus,
       chapter3: { ...state.chapter3, isDecrypted: true }
@@ -269,7 +269,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   solveChapter3Question: (questionId, points) => set((state) => {
     if (state.chapter3.solvedQuestions.includes(questionId)) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + points + timeBonus,
       chapter3: {
@@ -289,7 +289,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   decryptChapter4: () => set((state) => {
     if (state.chapter4.isDecrypted) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + 250 + timeBonus,
       chapter4: { ...state.chapter4, isDecrypted: true }
@@ -298,7 +298,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   solveChapter4Question: (questionId, points) => set((state) => {
     if (state.chapter4.solvedQuestions.includes(questionId)) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + points + timeBonus,
       chapter4: {
@@ -318,7 +318,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   decryptChapter5: () => set((state) => {
     if (state.chapter5.isDecrypted) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + 250 + timeBonus,
       chapter5: { ...state.chapter5, isDecrypted: true }
@@ -327,7 +327,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   solveChapter5Question: (questionId, points) => set((state) => {
     if (state.chapter5.solvedQuestions.includes(questionId)) return state;
-    const timeBonus = Math.floor(state.timeRemaining / 100);
+    const timeBonus = state.globalState.round_end_time ? Math.max(0, Math.floor((new Date(state.globalState.round_end_time).getTime() - Date.now()) / 1000)) : 0;
     return {
       score: state.score + points + timeBonus,
       chapter5: {
