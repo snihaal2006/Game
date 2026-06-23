@@ -98,6 +98,8 @@ const ProjectZeroDay = () => {
           chapter3: existingTeam.chapter3 || useGameStore.getState().chapter3,
           chapter4: existingTeam.chapter4 || useGameStore.getState().chapter4,
           chapter5: existingTeam.chapter5 || useGameStore.getState().chapter5,
+          disqualified: existingTeam.disqualified || false,
+          tabSwitches: existingTeam.tab_switches || 0,
         });
       } else {
         throw new Error('UNAUTHORIZED: Team not found. Contact the Overseer to inject.');

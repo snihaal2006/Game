@@ -1,30 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Monitor, EyeOff } from 'lucide-react';
+import { useGameStore } from '../../store/gameStore';
 
 interface AntiCheatOverlayProps {
   isActive: boolean;
 }
 
 export const AntiCheatOverlay: React.FC<AntiCheatOverlayProps> = ({ isActive }) => {
-  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const { tabSwitches, disqualified, incrementTabSwitches } = useGameStore();
   const [isTabWarningVisible, setIsTabWarningVisible] = useState(false);
   const [isFullscreenWarningVisible, setIsFullscreenWarningVisible] = useState(false);
-  const [isTerminated, setIsTerminated] = useState(false);
 
   useEffect(() => {
     if (!isActive) return;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        setTabSwitchCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount > 4) {
-            setIsTerminated(true);
-          } else {
-            setIsTabWarningVisible(true);
-          }
-          return newCount;
-        });
+        incrementTabSwitches();
+        setIsTabWarningVisible(true);
       }
     };
 
@@ -68,7 +61,7 @@ export const AntiCheatOverlay: React.FC<AntiCheatOverlayProps> = ({ isActive }) 
 
   if (!isActive) return null;
 
-  if (isTerminated) {
+  if (disqualified) {
     return (
       <div className="fixed inset-0 z-[99999] bg-black text-red-500 flex flex-col items-center justify-center font-mono p-8">
         <AlertTriangle size={64} className="mb-6 animate-pulse" />
@@ -115,7 +108,7 @@ export const AntiCheatOverlay: React.FC<AntiCheatOverlayProps> = ({ isActive }) 
         <p className="text-lg mb-8 text-center text-[#ffaa00]/80 max-w-lg">
           Switching tabs compromises the mission integrity. 
           <br /><br />
-          <span className="font-bold text-red-400 text-xl">WARNING: {tabSwitchCount} / 4 VIOLATIONS</span>
+          <span className="font-bold text-red-400 text-xl">WARNING: {tabSwitches} / 4 VIOLATIONS</span>
         </p>
         <button
           onClick={() => setIsTabWarningVisible(false)}

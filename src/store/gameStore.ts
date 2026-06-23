@@ -40,11 +40,17 @@ interface GameState {
   // Global Time Remaining in seconds (3 hours = 10800 seconds)
   timeRemaining: number;
   
+  // Anti-Cheat State
+  disqualified: boolean;
+  tabSwitches: number;
+  
   // Actions
   setActiveChapter: (chapter: number) => void;
   addScore: (points: number) => void;
   unlockChapter: (chapter: number) => void;
   decrementTime: () => void;
+  setDisqualified: (status: boolean) => void;
+  incrementTabSwitches: () => void;
   
   // Chapter 1 Actions
   decryptChapter1: () => void;
@@ -84,6 +90,8 @@ export const useGameStore = create<GameState>((set) => ({
   timeRemaining: 10800,
   teamId: null,
   teamName: null,
+  disqualified: false,
+  tabSwitches: 0,
   
   chapter1: {
     isDecrypted: false,
@@ -127,6 +135,15 @@ export const useGameStore = create<GameState>((set) => ({
   })),
   
   decrementTime: () => set((state) => ({ timeRemaining: Math.max(0, state.timeRemaining - 1) })),
+
+  setDisqualified: (status) => set({ disqualified: status }),
+  incrementTabSwitches: () => set((state) => {
+    const newCount = state.tabSwitches + 1;
+    return {
+      tabSwitches: newCount,
+      disqualified: state.disqualified || newCount >= 4
+    };
+  }),
 
   decryptChapter1: () => set((state) => {
     if (state.chapter1.isDecrypted) return state;
@@ -284,7 +301,9 @@ useGameStore.subscribe(async (state, prevState) => {
     state.chapter2 !== prevState.chapter2 ||
     state.chapter3 !== prevState.chapter3 ||
     state.chapter4 !== prevState.chapter4 ||
-    state.chapter5 !== prevState.chapter5
+    state.chapter5 !== prevState.chapter5 ||
+    state.tabSwitches !== prevState.tabSwitches ||
+    state.disqualified !== prevState.disqualified
   )) {
     const { supabase } = await import('../lib/supabase');
     await supabase.from('teams').update({
@@ -296,7 +315,9 @@ useGameStore.subscribe(async (state, prevState) => {
       chapter2: state.chapter2,
       chapter3: state.chapter3,
       chapter4: state.chapter4,
-      chapter5: state.chapter5
+      chapter5: state.chapter5,
+      disqualified: state.disqualified,
+      tab_switches: state.tabSwitches
     }).eq('id', state.teamId);
   }
 });

@@ -8,6 +8,8 @@ interface Team {
   score: number;
   active_chapter: number;
   updated_at: string;
+  disqualified: boolean;
+  tab_switches: number;
 }
 
 const AdminDashboard = () => {
@@ -28,7 +30,7 @@ const AdminDashboard = () => {
       
       const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
-        .select('id, team_name, score, active_chapter, updated_at')
+        .select('id, team_name, score, active_chapter, updated_at, disqualified, tab_switches')
         .order('score', { ascending: false });
         
       if (!teamsError && teamsData) setTeams(teamsData);
@@ -57,6 +59,16 @@ const AdminDashboard = () => {
       const newState = !isPaused;
       setIsPaused(newState); // Optimistic update
       await supabase.from('global_settings').update({ game_paused: newState }).eq('id', 1);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const toggleDisqualify = async (teamId: string, currentStatus: boolean) => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+      await supabase.from('teams').update({ disqualified: !currentStatus }).eq('id', teamId);
+      fetchDashboardData();
     } catch (e) {
       console.error(e);
     }
@@ -172,9 +184,11 @@ const AdminDashboard = () => {
               <tr className="border-b border-green-500/30 text-green-500/70 text-xs uppercase tracking-wider bg-green-500/5">
                 <th className="p-4 md:p-6">Team ID / Name</th>
                 <th className="p-4 md:p-6">Status</th>
+                <th className="p-4 md:p-6">Tabs</th>
                 <th className="p-4 md:p-6">Current Sector</th>
                 <th className="p-4 md:p-6">Score</th>
                 <th className="p-4 md:p-6">Last Active</th>
+                <th className="p-4 md:p-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-green-500/10">
@@ -188,22 +202,38 @@ const AdminDashboard = () => {
                           <Users className="w-4 h-4 text-green-400" />
                         </div>
                         <div>
-                          <div className="font-bold text-white group-hover:text-green-300 transition-colors">{team.team_name}</div>
+                          <div className={`font-bold transition-colors ${team.disqualified ? 'text-red-500 line-through' : 'text-white group-hover:text-green-300'}`}>{team.team_name}</div>
                           <div className="text-xs text-white/40 mt-0.5">ID: {team.id.substring(0, 8)}...</div>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 md:p-6">
                       <span className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs border ${
-                        online ? 'bg-green-500/10 border-green-500/50 text-green-400' : 'bg-red-500/10 border-red-500/50 text-red-400'
+                        team.disqualified ? 'bg-red-900/40 border-red-500/50 text-red-400' :
+                        online ? 'bg-green-500/10 border-green-500/50 text-green-400' : 'bg-gray-500/10 border-gray-500/50 text-gray-400'
                       }`}>
-                        <span className={`w-2 h-2 rounded-full ${online ? 'bg-green-400 animate-pulse shadow-[0_0_5px_rgba(74,222,128,0.8)]' : 'bg-red-400'}`}></span>
-                        <span>{online ? 'ONLINE' : 'OFFLINE'}</span>
+                        <span className={`w-2 h-2 rounded-full ${team.disqualified ? 'bg-red-500' : online ? 'bg-green-400 animate-pulse shadow-[0_0_5px_rgba(74,222,128,0.8)]' : 'bg-gray-400'}`}></span>
+                        <span>{team.disqualified ? 'DISQUALIFIED' : online ? 'ONLINE' : 'OFFLINE'}</span>
                       </span>
+                    </td>
+                    <td className="p-4 md:p-6 text-white/80">
+                      <span className={team.tab_switches >= 4 ? 'text-red-400 font-bold' : ''}>{team.tab_switches} / 4</span>
                     </td>
                     <td className="p-4 md:p-6 text-white/80">Sector {team.active_chapter}</td>
                     <td className="p-4 md:p-6 font-bold text-green-400">{team.score.toLocaleString()}</td>
                     <td className="p-4 md:p-6 text-sm text-white/50">{formatTimeAgo(team.updated_at)}</td>
+                    <td className="p-4 md:p-6 text-right">
+                      <button 
+                        onClick={() => toggleDisqualify(team.id, team.disqualified)}
+                        className={`px-3 py-1 text-xs border rounded-lg transition-colors ${
+                          team.disqualified 
+                            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/20' 
+                            : 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20'
+                        }`}
+                      >
+                        {team.disqualified ? 'Reinstate' : 'Disqualify'}
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
