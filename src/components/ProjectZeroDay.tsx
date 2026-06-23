@@ -17,18 +17,31 @@ import { TransmissionPopup } from './ui/TransmissionPopup';
 const ProjectZeroDay = () => {
   const { activeChapter, unlockedChapters, timeRemaining, decrementTime, score, setActiveChapter, teamName, setTeam } = useGameStore();
 
+  const [showIntroVideo, setShowIntroVideo] = useState(false);
+  const [showMatrixLoading, setShowMatrixLoading] = useState(false);
+  const [introVideoFinished, setIntroVideoFinished] = useState(false);
+  const [gamePaused, setGamePaused] = useState(false);
+  const introVideoRef = useRef<IntroVideoRef>(null);
+
   useEffect(() => {
-    if (!teamName) return;
+    if (!teamName || gamePaused) return;
     const timer = setInterval(() => {
       decrementTime();
     }, 1000);
     return () => clearInterval(timer);
-  }, [decrementTime, teamName]);
+  }, [decrementTime, teamName, gamePaused]);
 
-  const [showIntroVideo, setShowIntroVideo] = useState(false);
-  const [showMatrixLoading, setShowMatrixLoading] = useState(false);
-  const [introVideoFinished, setIntroVideoFinished] = useState(false);
-  const introVideoRef = useRef<IntroVideoRef>(null);
+  useEffect(() => {
+    if (!teamName) return;
+    const fetchGlobalSettings = async () => {
+      const { supabase } = await import('../lib/supabase');
+      const { data } = await supabase.from('global_settings').select('game_paused').eq('id', 1).single();
+      if (data) setGamePaused(data.game_paused);
+    };
+    fetchGlobalSettings();
+    const interval = setInterval(fetchGlobalSettings, 5000);
+    return () => clearInterval(interval);
+  }, [teamName]);
 
   useEffect(() => {
     if (showMatrixLoading) {
@@ -87,22 +100,7 @@ const ProjectZeroDay = () => {
           chapter5: existingTeam.chapter5 || useGameStore.getState().chapter5,
         });
       } else {
-        // Team does not exist, create a new one seamlessly
-        const { data: newTeam, error: insertError } = await supabase
-          .from('teams')
-          .insert([{
-            team_name: name,
-            password: secret,
-            score: 0,
-            time_remaining: 10800,
-            active_chapter: 1,
-            unlocked_chapters: [1]
-          }])
-          .select()
-          .single();
-
-        if (insertError) throw new Error('Failed to create team profile');
-        teamId = newTeam.id;
+        throw new Error('UNAUTHORIZED: Team not found. Contact the Overseer to inject.');
       }
       
       setTeam(teamId, name);
@@ -193,6 +191,17 @@ const ProjectZeroDay = () => {
           {activeChapter === 3 && <Chapter3 />}
           {activeChapter === 4 && <Chapter4 />}
           {activeChapter === 5 && <Chapter5 />}
+          
+          {gamePaused && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md pointer-events-auto">
+              <h1 className="text-5xl md:text-7xl font-bold text-red-500 tracking-widest uppercase mb-4 animate-pulse">
+                System Halted
+              </h1>
+              <p className="text-red-400/80 font-mono tracking-widest text-lg bg-black/50 border border-red-500/30 px-6 py-2 mt-4">
+                THE OVERSEER HAS PAUSED THE GAME.
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>
