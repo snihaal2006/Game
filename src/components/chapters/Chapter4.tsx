@@ -390,7 +390,7 @@ const Chapter4: React.FC = () => {
   const handleQ2 = (e: React.FormEvent) => {
     e.preventDefault();
     const a = q2Answer.trim().toLowerCase();
-    if (a.includes("hello")) {
+    if (a.includes("breach")) {
       setTransitionText('IMAGE DECODED. ACCESSING NEXT NODE...');
       setIsTransitioning(true);
       setTimeout(() => {
@@ -983,37 +983,16 @@ https://skcet-portal-login.xyz`}
                       Find the Code Word from the Image.
                     </div>
                     <div style={{ 
-                      background: '#0a0a0a', 
-                      border: '12px solid #1a1a1a', 
-                      borderRadius: 8,
-                      padding: 16, 
                       marginBottom: 24,
-                      fontFamily: 'monospace',
+                      display: 'flex',
+                      justifyContent: 'center',
                       boxShadow: '0 0 30px rgba(0,0,0,0.8)'
                     }}>
-                      <div style={{ color: '#ff3333', fontSize: 24, fontWeight: 'bold', textAlign: 'center', letterSpacing: 3, marginBottom: 16, textShadow: '0 0 10px rgba(255,50,50,0.8)', animation: 'flickerTimer 2s infinite' }}>
-                        WE ARE THE VOID
-                      </div>
-                      <div style={{ background: '#021002', border: '1px solid #00ff41', padding: 16, color: '#00ff41', fontSize: 13, lineHeight: 1.6, boxShadow: 'inset 0 0 20px rgba(0,255,65,0.1)' }}>
-                        <div style={{ borderBottom: '1px solid #00ff41', paddingBottom: 8, marginBottom: 8 }}>Project: Zero-Day</div>
-                        <div>&gt; How easily you are tracked.</div>
-                        <div>&gt; Every defense is a weakness.</div>
-                        <div>&gt; Logging your keystrokes now.</div>
-                        <div>&gt; Let's see what you can do.</div>
-                        <div>&gt; Only a moment left...</div>
-                        <div>&gt; Payload 'The Eraser' deployed...</div>
-                        <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-                          <span style={{ color: '#00ff41' }}>TEAM_ALIAS_</span>
-                          <span style={{ border: '1px solid #00ff41', width: 120 }}></span>
-                        </div>
-                        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                          <span style={{ color: '#00ff41' }}>AUTH_TOKEN_</span>
-                          <span style={{ border: '1px solid #00ff41', width: 120, paddingLeft: 4 }}>********</span>
-                        </div>
-                        <div style={{ textAlign: 'center', marginTop: 16 }}>
-                          <span style={{ color: '#ff3333', border: '1px solid #ff3333', padding: '4px 12px', display: 'inline-block' }}>[ INITIATE_TRACE ]</span>
-                        </div>
-                      </div>
+                      <img 
+                        src="/breach.jpg" 
+                        alt="Cyberpunk Neon Sign" 
+                        style={{ maxWidth: '100%', borderRadius: 8, border: '2px solid #ff0000' }} 
+                      />
                     </div>
                     <form onSubmit={handleQ2} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <span style={{ color: '#ff0000', fontSize: 16 }}>▶</span>
@@ -1075,7 +1054,7 @@ System.out.println(sum);`}
                 <div style={{ textAlign: 'center', border: '1px solid #ff0000', padding: 24, background: 'rgba(10,0,0,0.98)' }}>
                   <div style={{ ...orbitron, color: '#ff3333', fontSize: 20, letterSpacing: 4, marginBottom: 16, animation: 'flickerTimer 2s infinite' }}>LOGIC BOMB DEFUSED</div>
                   <div style={{ ...mono, color: '#ff9999', fontSize: 14, marginBottom: 8 }}>&gt; ATTACK SEQUENCE IDENTIFIED</div>
-                  <div style={{ ...mono, color: '#ff9999', fontSize: 14, marginBottom: 8 }}>&gt; CODE WORD RECOVERED: HELLO</div>
+                  <div style={{ ...mono, color: '#ff9999', fontSize: 14, marginBottom: 8 }}>&gt; CODE WORD RECOVERED: BREACH</div>
                   <div style={{ ...mono, color: '#ff9999', fontSize: 14, marginBottom: 16 }}>&gt; DEBUG SUCCESSFUL: 20</div>
                   <div style={{ ...orbitron, color: '#ff6666', fontSize: 18, letterSpacing: 2, marginBottom: 8, animation: 'pulseOp 1s infinite' }}>EVIDENCE FRAGMENT RECOVERED</div>
                   <div style={{ ...orbitron, color: '#ff6666', fontSize: 48, fontWeight: 'bold', textShadow: '0 0 20px #ff6666', margin: '16px 0' }}>
